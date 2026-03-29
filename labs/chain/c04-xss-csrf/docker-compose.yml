@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment: {POSTGRES_DB: c04db, POSTGRES_USER: c04user, POSTGRES_PASSWORD: c04pass}
+    volumes: ["./src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [c04]
+  api:
+    build: ./src
+    ports: ["9004:3000"]
+    environment: {DB_HOST: db, DB_USER: c04user, DB_PASS: c04pass, DB_NAME: c04db}
+    depends_on: [db]
+    networks: [c04]
+networks:
+  c04:
+    driver: bridge

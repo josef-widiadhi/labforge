@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: shopdb
+      MYSQL_USER: shopuser
+      MYSQL_PASSWORD: shoppass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lab02
+
+  api:
+    build: ./src
+    ports:
+      - "8002:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: shopuser
+      DB_PASS: shoppass
+      DB_NAME: shopdb
+    depends_on:
+      - db
+    networks:
+      - lab02
+
+networks:
+  lab02:
+    driver: bridge

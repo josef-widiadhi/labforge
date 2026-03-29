@@ -1,0 +1,493 @@
+version: "3.9"
+
+# ══════════════════════════════════════════════════════════════════════
+#  LabForge — Master Docker Compose
+#  Teacher/Admin starts this. Students connect to lab ports.
+#
+#  Start just the platform UI:
+#    docker compose up -d labforge
+#
+#  Start UI + specific lab group:
+#    docker compose --profile beginner up -d   (all 20 beginner labs)
+#    docker compose --profile chain up -d      (6 chain/combo labs)
+#    docker compose --profile all up -d        (everything ~8GB RAM)
+#
+#  Or use labforge.sh for a friendlier interface.
+# ══════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── LABFORGE PLATFORM UI ────────────────────────────────────────────
+  labforge:
+    build: ./labforge-app
+    container_name: labforge
+    ports:
+      - "3000:4000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/labs:ro
+    environment:
+      LABS_ROOT: /labs/labs
+      OLLAMA_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # ── BEGINNER LABS 01–20 ─────────────────────────────────────────────
+  lab01:
+    build: ./labs/01-sqli-basic/src
+    container_name: lab01-sqli-basic
+    ports: ["8001:3000"]
+    environment: {DB_HOST: db01, DB_USER: admin, DB_PASS: admin123, DB_NAME: userdb}
+    depends_on: [db01]
+    networks: [net01]
+    profiles: [lab01, beginner, all]
+  db01:
+    image: postgres:15-alpine
+    container_name: db01
+    environment: {POSTGRES_DB: userdb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/01-sqli-basic/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net01]
+    profiles: [lab01, beginner, all]
+
+  lab02:
+    build: ./labs/02-sqli-blind/src
+    container_name: lab02-sqli-blind
+    ports: ["8002:3000"]
+    environment: {DB_HOST: db02, DB_USER: admin, DB_PASS: admin123, DB_NAME: blinddb}
+    depends_on: [db02]
+    networks: [net02]
+    profiles: [lab02, beginner, all]
+  db02:
+    image: mysql:8.0
+    container_name: db02
+    environment: {MYSQL_DATABASE: blinddb, MYSQL_USER: admin, MYSQL_PASSWORD: admin123, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/02-sqli-blind/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net02]
+    profiles: [lab02, beginner, all]
+
+  lab03:
+    build: ./labs/03-idor-basic/src
+    container_name: lab03-idor-basic
+    ports: ["8003:3000"]
+    environment: {DB_HOST: db03, DB_USER: admin, DB_PASS: admin123, DB_NAME: idordb}
+    depends_on: [db03]
+    networks: [net03]
+    profiles: [lab03, beginner, all]
+  db03:
+    image: postgres:15-alpine
+    container_name: db03
+    environment: {POSTGRES_DB: idordb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/03-idor-basic/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net03]
+    profiles: [lab03, beginner, all]
+
+  lab04:
+    build: ./labs/04-idor-api-swagger/src
+    container_name: lab04-idor-swagger
+    ports: ["8004:3000"]
+    environment: {DB_HOST: db04, DB_USER: admin, DB_PASS: admin123, DB_NAME: idorswaggerdb}
+    depends_on: [db04]
+    networks: [net04]
+    profiles: [lab04, beginner, all]
+  db04:
+    image: postgres:15-alpine
+    container_name: db04
+    environment: {POSTGRES_DB: idorswaggerdb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/04-idor-api-swagger/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net04]
+    profiles: [lab04, beginner, all]
+
+  lab05:
+    build: ./labs/05-xss-stored/src
+    container_name: lab05-xss-stored
+    ports: ["8005:3000"]
+    environment: {DB_HOST: db05, DB_USER: admin, DB_PASS: admin123, DB_NAME: xssdb}
+    depends_on: [db05]
+    networks: [net05]
+    profiles: [lab05, beginner, all]
+  db05:
+    image: mysql:8.0
+    container_name: db05
+    environment: {MYSQL_DATABASE: xssdb, MYSQL_USER: admin, MYSQL_PASSWORD: admin123, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/05-xss-stored/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net05]
+    profiles: [lab05, beginner, all]
+
+  lab06:
+    build: ./labs/06-broken-auth-jwt/src
+    container_name: lab06-jwt
+    ports: ["8006:3000"]
+    environment: {DB_HOST: db06, DB_USER: authuser, DB_PASS: authpass, DB_NAME: authdb, JWT_SECRET: secret123}
+    depends_on: [db06]
+    networks: [net06]
+    profiles: [lab06, beginner, all]
+  db06:
+    image: postgres:15-alpine
+    container_name: db06
+    environment: {POSTGRES_DB: authdb, POSTGRES_USER: authuser, POSTGRES_PASSWORD: authpass}
+    volumes: ["./labs/06-broken-auth-jwt/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net06]
+    profiles: [lab06, beginner, all]
+
+  lab07:
+    build: ./labs/07-broken-auth-session/src
+    container_name: lab07-session
+    ports: ["8007:3000"]
+    environment: {REDIS_HOST: redis07}
+    depends_on: [redis07]
+    networks: [net07]
+    profiles: [lab07, beginner, all]
+  redis07:
+    image: redis:7-alpine
+    container_name: redis07
+    networks: [net07]
+    profiles: [lab07, beginner, all]
+
+  lab08:
+    build: ./labs/08-ssrf-basic/src
+    container_name: lab08-ssrf
+    ports: ["8008:3000"]
+    environment: {DB_HOST: db08, DB_USER: admin, DB_PASS: admin123, DB_NAME: ssrfdb}
+    depends_on: [db08]
+    networks: [net08]
+    profiles: [lab08, beginner, all]
+  db08:
+    image: postgres:15-alpine
+    container_name: db08
+    environment: {POSTGRES_DB: ssrfdb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/08-ssrf-basic/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net08]
+    profiles: [lab08, beginner, all]
+
+  lab09:
+    build: ./labs/09-rce-via-upload/src
+    container_name: lab09-rce-upload
+    ports: ["8009:3000"]
+    environment: {DB_HOST: db09, DB_USER: uploader, DB_PASS: uploadpass, DB_NAME: uploaddb}
+    depends_on: [db09]
+    networks: [net09]
+    profiles: [lab09, beginner, all]
+  db09:
+    image: mysql:8.0
+    container_name: db09
+    environment: {MYSQL_DATABASE: uploaddb, MYSQL_USER: uploader, MYSQL_PASSWORD: uploadpass, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/09-rce-via-upload/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net09]
+    profiles: [lab09, beginner, all]
+
+  lab10:
+    build: ./labs/10-path-traversal/src
+    container_name: lab10-path-traversal
+    ports: ["8010:3000"]
+    networks: [net10]
+    profiles: [lab10, beginner, all]
+
+  lab11:
+    build: ./labs/11-xxe-injection/src
+    container_name: lab11-xxe
+    ports: ["8011:3000"]
+    environment: {DB_HOST: db11, DB_USER: admin, DB_PASS: admin123, DB_NAME: xxedb}
+    depends_on: [db11]
+    networks: [net11]
+    profiles: [lab11, beginner, all]
+  db11:
+    image: postgres:15-alpine
+    container_name: db11
+    environment: {POSTGRES_DB: xxedb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/11-xxe-injection/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net11]
+    profiles: [lab11, beginner, all]
+
+  lab12:
+    build: ./labs/12-nosql-injection-redis/src
+    container_name: lab12-nosql
+    ports: ["8012:3000"]
+    environment: {REDIS_HOST: redis12}
+    depends_on: [redis12]
+    networks: [net12]
+    profiles: [lab12, beginner, all]
+  redis12:
+    image: redis:7-alpine
+    container_name: redis12
+    networks: [net12]
+    profiles: [lab12, beginner, all]
+
+  lab13:
+    build: ./labs/13-idor-uuid-bypass/src
+    container_name: lab13-idor-uuid
+    ports: ["8013:3000"]
+    environment: {DB_HOST: db13, DB_USER: admin, DB_PASS: admin123, DB_NAME: uuiddb}
+    depends_on: [db13]
+    networks: [net13]
+    profiles: [lab13, beginner, all]
+  db13:
+    image: postgres:15-alpine
+    container_name: db13
+    environment: {POSTGRES_DB: uuiddb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/13-idor-uuid-bypass/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net13]
+    profiles: [lab13, beginner, all]
+
+  lab14:
+    build: ./labs/14-mass-assignment/src
+    container_name: lab14-mass-assignment
+    ports: ["8014:3000"]
+    environment: {DB_HOST: db14, DB_USER: admin, DB_PASS: admin123, DB_NAME: massdb}
+    depends_on: [db14]
+    networks: [net14]
+    profiles: [lab14, beginner, all]
+  db14:
+    image: mysql:8.0
+    container_name: db14
+    environment: {MYSQL_DATABASE: massdb, MYSQL_USER: admin, MYSQL_PASSWORD: admin123, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/14-mass-assignment/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net14]
+    profiles: [lab14, beginner, all]
+
+  lab15:
+    build: ./labs/15-rate-limit-bruteforce/src
+    container_name: lab15-bruteforce
+    ports: ["8015:3000"]
+    environment: {DB_HOST: db15, DB_USER: rateuser, DB_PASS: ratepass, DB_NAME: ratedb, REDIS_HOST: redis15}
+    depends_on: [db15, redis15]
+    networks: [net15]
+    profiles: [lab15, beginner, all]
+  db15:
+    image: postgres:15-alpine
+    container_name: db15
+    environment: {POSTGRES_DB: ratedb, POSTGRES_USER: rateuser, POSTGRES_PASSWORD: ratepass}
+    volumes: ["./labs/15-rate-limit-bruteforce/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net15]
+    profiles: [lab15, beginner, all]
+  redis15:
+    image: redis:7-alpine
+    container_name: redis15
+    networks: [net15]
+    profiles: [lab15, beginner, all]
+
+  lab16:
+    build: ./labs/16-api-swagger-exposure/src
+    container_name: lab16-swagger-exposure
+    ports: ["8016:3000"]
+    environment: {DB_HOST: db16, DB_USER: admin, DB_PASS: admin123, DB_NAME: swaggerdb}
+    depends_on: [db16]
+    networks: [net16]
+    profiles: [lab16, beginner, all]
+  db16:
+    image: mysql:8.0
+    container_name: db16
+    environment: {MYSQL_DATABASE: swaggerdb, MYSQL_USER: admin, MYSQL_PASSWORD: admin123, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/16-api-swagger-exposure/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net16]
+    profiles: [lab16, beginner, all]
+
+  lab17:
+    build: ./labs/17-graphql-introspection/src
+    container_name: lab17-graphql
+    ports: ["8017:3000"]
+    environment: {DB_HOST: db17, DB_USER: gqluser, DB_PASS: gqlpass, DB_NAME: graphqldb}
+    depends_on: [db17]
+    networks: [net17]
+    profiles: [lab17, beginner, all]
+  db17:
+    image: postgres:15-alpine
+    container_name: db17
+    environment: {POSTGRES_DB: graphqldb, POSTGRES_USER: gqluser, POSTGRES_PASSWORD: gqlpass}
+    volumes: ["./labs/17-graphql-introspection/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net17]
+    profiles: [lab17, beginner, all]
+
+  lab18:
+    build: ./labs/18-cors-misconfigured/src
+    container_name: lab18-cors
+    ports: ["8018:3000"]
+    environment: {DB_HOST: db18, DB_USER: admin, DB_PASS: admin123, DB_NAME: corsdb}
+    depends_on: [db18]
+    networks: [net18]
+    profiles: [lab18, beginner, all]
+  db18:
+    image: postgres:15-alpine
+    container_name: db18
+    environment: {POSTGRES_DB: corsdb, POSTGRES_USER: admin, POSTGRES_PASSWORD: admin123}
+    volumes: ["./labs/18-cors-misconfigured/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net18]
+    profiles: [lab18, beginner, all]
+
+  lab19:
+    build: ./labs/19-redis-unauth/src
+    container_name: lab19-redis-unauth
+    ports: ["8019:3000"]
+    environment: {REDIS_HOST: redis19}
+    depends_on: [redis19]
+    networks: [net19]
+    profiles: [lab19, beginner, all]
+  redis19:
+    image: redis:7-alpine
+    container_name: redis19
+    ports: ["6399:6379"]
+    command: redis-server --loglevel warning
+    networks: [net19]
+    profiles: [lab19, beginner, all]
+
+  lab20:
+    build: ./labs/20-mysql-weak-creds/src
+    container_name: lab20-mysql-weak
+    ports: ["8020:3000"]
+    environment: {DB_HOST: db20, DB_USER: admin, DB_PASS: admin, DB_NAME: weakdb}
+    depends_on: [db20]
+    networks: [net20]
+    profiles: [lab20, beginner, all]
+  db20:
+    image: mysql:8.0
+    container_name: db20
+    ports: ["3309:3306"]
+    environment: {MYSQL_DATABASE: weakdb, MYSQL_USER: admin, MYSQL_PASSWORD: admin, MYSQL_ROOT_PASSWORD: root}
+    volumes: ["./labs/20-mysql-weak-creds/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net20]
+    profiles: [lab20, beginner, all]
+
+  # ── HARDENED REFERENCE ──────────────────────────────────────────────
+  lab21:
+    build: ./labs/21-hardened/src
+    container_name: lab21-hardened
+    ports: ["8021:3000"]
+    environment:
+      NODE_ENV: production
+      DB_HOST: db21
+      DB_USER: appuser
+      DB_PASS: ChangeThisInProd!
+      DB_NAME: securedb
+      REDIS_HOST: redis21
+      REDIS_PASS: StrongRedisPass!
+      JWT_SECRET: UseALong256BitRandomSecret!
+    depends_on: [db21, redis21]
+    networks: [net21]
+    user: "1001:1001"
+    read_only: true
+    tmpfs: [/tmp:size=64m,noexec,nosuid]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    profiles: [lab21, hardened, all]
+  db21:
+    image: postgres:15-alpine
+    container_name: db21
+    environment: {POSTGRES_DB: securedb, POSTGRES_USER: appuser, POSTGRES_PASSWORD: ChangeThisInProd!}
+    volumes: ["./labs/21-hardened/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [net21]
+    profiles: [lab21, hardened, all]
+  redis21:
+    image: redis:7-alpine
+    container_name: redis21
+    command: redis-server --requirepass StrongRedisPass! --protected-mode yes
+    networks: [net21]
+    profiles: [lab21, hardened, all]
+
+  # ── CHAIN LABS C01–C06 ──────────────────────────────────────────────
+  c01:
+    build: ./labs/chain/c01-recon-sqli-jwt/src
+    container_name: c01-recon-sqli-jwt
+    ports: ["9001:3000"]
+    environment: {DB_HOST: dbc01, DB_USER: c01user, DB_PASS: c01pass, DB_NAME: c01db}
+    depends_on: [dbc01]
+    networks: [netc01]
+    profiles: [c01, chain, all]
+  dbc01:
+    image: postgres:15-alpine
+    container_name: dbc01
+    environment: {POSTGRES_DB: c01db, POSTGRES_USER: c01user, POSTGRES_PASSWORD: c01pass}
+    volumes: ["./labs/chain/c01-recon-sqli-jwt/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [netc01]
+    profiles: [c01, chain, all]
+
+  c02:
+    build: ./labs/chain/c02-ssrf-rce/src
+    container_name: c02-ssrf-rce
+    ports: ["9002:3000"]
+    networks: [netc02]
+    profiles: [c02, chain, all]
+
+  c03:
+    build: ./labs/chain/c03-upload-lfi/src
+    container_name: c03-upload-lfi
+    ports: ["9003:3000"]
+    networks: [netc03]
+    profiles: [c03, chain, all]
+
+  c04:
+    build: ./labs/chain/c04-xss-csrf/src
+    container_name: c04-xss-csrf
+    ports: ["9004:3000"]
+    environment: {DB_HOST: dbc04, DB_USER: c04user, DB_PASS: c04pass, DB_NAME: c04db}
+    depends_on: [dbc04]
+    networks: [netc04]
+    profiles: [c04, chain, all]
+  dbc04:
+    image: postgres:15-alpine
+    container_name: dbc04
+    environment: {POSTGRES_DB: c04db, POSTGRES_USER: c04user, POSTGRES_PASSWORD: c04pass}
+    volumes: ["./labs/chain/c04-xss-csrf/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [netc04]
+    profiles: [c04, chain, all]
+
+  c05:
+    build: ./labs/chain/c05-massassign-idor/src
+    container_name: c05-massassign-idor
+    ports: ["9005:3000"]
+    environment: {DB_HOST: dbc05, DB_USER: c05user, DB_PASS: c05pass, DB_NAME: c05db}
+    depends_on: [dbc05]
+    networks: [netc05]
+    profiles: [c05, chain, all]
+  dbc05:
+    image: postgres:15-alpine
+    container_name: dbc05
+    environment: {POSTGRES_DB: c05db, POSTGRES_USER: c05user, POSTGRES_PASSWORD: c05pass}
+    volumes: ["./labs/chain/c05-massassign-idor/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [netc05]
+    profiles: [c05, chain, all]
+
+  c06:
+    build: ./labs/chain/c06-corporate-app/src
+    container_name: c06-corporate-app
+    ports: ["9006:3000"]
+    environment: {DB_HOST: dbc06, DB_USER: c06user, DB_PASS: c06pass, DB_NAME: c06db}
+    depends_on: [dbc06]
+    networks: [netc06]
+    profiles: [c06, chain, all]
+  dbc06:
+    image: postgres:15-alpine
+    container_name: dbc06
+    environment: {POSTGRES_DB: c06db, POSTGRES_USER: c06user, POSTGRES_PASSWORD: c06pass}
+    volumes: ["./labs/chain/c06-corporate-app/src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [netc06]
+    profiles: [c06, chain, all]
+
+# ── ISOLATED NETWORKS (each lab cannot talk to others) ──────────────
+networks:
+  net01:  {driver: bridge}
+  net02:  {driver: bridge}
+  net03:  {driver: bridge}
+  net04:  {driver: bridge}
+  net05:  {driver: bridge}
+  net06:  {driver: bridge}
+  net07:  {driver: bridge}
+  net08:  {driver: bridge}
+  net09:  {driver: bridge}
+  net10:  {driver: bridge}
+  net11:  {driver: bridge}
+  net12:  {driver: bridge}
+  net13:  {driver: bridge}
+  net14:  {driver: bridge}
+  net15:  {driver: bridge}
+  net16:  {driver: bridge}
+  net17:  {driver: bridge}
+  net18:  {driver: bridge}
+  net19:  {driver: bridge}
+  net20:  {driver: bridge}
+  net21:  {driver: bridge}
+  netc01: {driver: bridge}
+  netc02: {driver: bridge}
+  netc03: {driver: bridge}
+  netc04: {driver: bridge}
+  netc05: {driver: bridge}
+  netc06: {driver: bridge}

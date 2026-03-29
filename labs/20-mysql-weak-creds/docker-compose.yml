@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    ports: ["3309:3306"]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: weakdb
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab20]
+  api:
+    build: ./src
+    ports: ["8020:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASS: admin
+      DB_NAME: weakdb
+    depends_on: [db]
+    networks: [lab20]
+networks:
+  lab20:
+    driver: bridge

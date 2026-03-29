@@ -1,0 +1,106 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    # 🔒 HARDENING: DB never exposed to host network
+    # No 'ports:' mapping — only accessible within Docker network
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-securedb}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeThisToAStrongRandomPassword!}
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    # 🔒 HARDENING: Read-only filesystem where possible
+    read_only: false  # Postgres needs write access to data dir
+    # 🔒 HARDENING: No unnecessary capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    # 🔒 HARDENING: Resource limits prevent DoS
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    # 🔒 HARDENING: Redis NOT exposed to host
+    # Requires password, bind to container network only
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-StrongRedisPass!}
+      --bind 0.0.0.0
+      --protected-mode yes
+      --rename-command FLUSHALL ""
+      --rename-command CONFIG "CONFIG_DISABLED"
+      --rename-command DEBUG ""
+      --rename-command KEYS "KEYS_DISABLED"
+      --loglevel warning
+    networks:
+      - backend
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  api:
+    build:
+      context: ./src
+      # 🔒 HARDENING: Multi-stage build — no dev tools in final image
+      dockerfile: Dockerfile
+    ports:
+      - "8021:3000"
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_USER: ${POSTGRES_USER:-appuser}
+      DB_PASS: ${POSTGRES_PASSWORD:-ChangeThisToAStrongRandomPassword!}
+      DB_NAME: ${POSTGRES_DB:-securedb}
+      REDIS_HOST: redis
+      REDIS_PASS: ${REDIS_PASSWORD:-StrongRedisPass!}
+      JWT_SECRET: ${JWT_SECRET:-UseALongRandom256BitSecretFromVault!}
+      SESSION_SECRET: ${SESSION_SECRET:-AnotherLongRandomSecretForSessions!}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - frontend
+      - backend
+    # 🔒 HARDENING: Run as non-root user
+    user: "1001:1001"
+    # 🔒 HARDENING: Read-only root filesystem
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    # 🔒 HARDENING: Drop all capabilities
+    cap_drop:
+      - ALL
+    # 🔒 HARDENING: Prevent privilege escalation
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  # 🔒 HARDENING: Separate frontend and backend networks
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true  # No external access from backend network
+
+volumes:
+  db_data:

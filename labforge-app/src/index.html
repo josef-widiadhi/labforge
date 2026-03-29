@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabForge — Pentest Teaching Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #020608; --bg2: #060e12; --bg3: #0a1820;
+  --panel:   #0d1f28; --panel2: #0f2535;
+  --border:  #1a3a4a; --border2: #234555;
+  --accent:  #00d4ff; --accent2: #00ff9d; --accent3: #ff4d6d;
+  --accent4: #ffd60a; --accent5: #a855f7;
+  --text:    #c8e6f0; --text2: #7ab8cc; --text3: #4a7a8a;
+  --danger:  #ff3a5c; --warn: #ff9900; --success: #00cc7a;
+  --fm: 'Share Tech Mono',monospace; --fu: 'Rajdhani',sans-serif; --fh: 'Orbitron',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--fu);font-size:15px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.015) 2px,rgba(0,212,255,.015) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.app{display:flex;height:100vh;position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,var(--bg2),var(--bg3));border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.logo-title{font-family:var(--fh);font-size:19px;font-weight:900;color:var(--accent);text-shadow:0 0 20px rgba(0,212,255,.5);letter-spacing:2px}
+.logo-sub{font-family:var(--fm);font-size:9px;color:var(--text3);letter-spacing:3px;margin-top:2px}
+.logo-role{display:inline-block;margin-top:6px;font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:2px;background:rgba(0,255,157,.1);border:1px solid rgba(0,255,157,.3);color:var(--accent2);letter-spacing:1px}
+.nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-sec{font-family:var(--fm);font-size:9px;color:var(--text3);letter-spacing:3px;padding:12px 8px 5px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);letter-spacing:.5px;transition:all .15s;margin-bottom:2px;border:1px solid transparent;font-family:var(--fu)}
+.nav-item:hover{background:rgba(0,212,255,.05);color:var(--accent);border-color:rgba(0,212,255,.1)}
+.nav-item.active{background:rgba(0,212,255,.1);color:var(--accent);border-color:rgba(0,212,255,.2)}
+.nav-item .icon{font-size:14px;width:18px;text-align:center}
+.nbadge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--fm)}
+.nbadge-cyan{background:rgba(0,212,255,.2);color:var(--accent)}
+.nbadge-green{background:var(--accent2);color:#000}
+.nbadge-red{background:var(--accent3);color:#fff}
+.nbadge-gold{background:var(--accent4);color:#000}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-family:var(--fm);font-size:10px;color:var(--text3)}
+.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:10px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:var(--fh);font-size:13px;color:var(--accent);letter-spacing:3px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.pill{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-family:var(--fm);font-size:11px;color:var(--text2);cursor:default}
+.pill.ok{border-color:var(--accent2);color:var(--accent2)}
+.pill.warn{border-color:var(--warn);color:var(--warn)}
+.pill.err{border-color:var(--danger);color:var(--danger)}
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+
+/* CARDS */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.card-hdr{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:var(--fm);font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.card-body{padding:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+/* STAT */
+.stat-val{font-family:var(--fh);font-size:28px;font-weight:700}
+.sv-cyan{color:var(--accent);text-shadow:0 0 15px rgba(0,212,255,.4)}
+.sv-green{color:var(--accent2);text-shadow:0 0 15px rgba(0,255,157,.4)}
+.sv-red{color:var(--accent3);text-shadow:0 0 15px rgba(255,77,109,.4)}
+.sv-gold{color:var(--accent4);text-shadow:0 0 15px rgba(255,214,10,.4)}
+.sv-purple{color:var(--accent5);text-shadow:0 0 15px rgba(168,85,247,.4)}
+.stat-label{font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-top:4px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:4px;border:1px solid;cursor:pointer;font-family:var(--fu);font-size:13px;font-weight:600;letter-spacing:.5px;transition:all .15s;white-space:nowrap;text-decoration:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-cyan{background:rgba(0,212,255,.1);border-color:var(--accent);color:var(--accent)}
+.btn-cyan:hover:not(:disabled){background:rgba(0,212,255,.2);box-shadow:0 0 12px rgba(0,212,255,.2)}
+.btn-green{background:rgba(0,255,157,.08);border-color:var(--accent2);color:var(--accent2)}
+.btn-green:hover:not(:disabled){background:rgba(0,255,157,.15)}
+.btn-red{background:rgba(255,77,109,.08);border-color:var(--accent3);color:var(--accent3)}
+.btn-red:hover:not(:disabled){background:rgba(255,77,109,.15)}
+.btn-gold{background:rgba(255,214,10,.08);border-color:var(--accent4);color:var(--accent4)}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
+.btn-ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn-purple{background:rgba(168,85,247,.1);border-color:var(--accent5);color:var(--accent5)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-family:var(--fm);font-size:10px;letter-spacing:1px;font-weight:600}
+.bg-green{background:rgba(0,204,122,.12);color:var(--success);border:1px solid rgba(0,204,122,.25)}
+.bg-orange{background:rgba(255,153,0,.12);color:var(--warn);border:1px solid rgba(255,153,0,.25)}
+.bg-red{background:rgba(255,60,92,.12);color:var(--danger);border:1px solid rgba(255,60,92,.25)}
+.bg-purple{background:rgba(168,85,247,.12);color:var(--accent5);border:1px solid rgba(168,85,247,.25)}
+.bg-cyan{background:rgba(0,212,255,.08);color:var(--accent);border:1px solid rgba(0,212,255,.2)}
+.bg-gray{background:rgba(74,122,138,.12);color:var(--text3);border:1px solid rgba(74,122,138,.25)}
+
+/* LAB CARDS */
+.labs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.lab-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px;transition:all .15s;position:relative;overflow:hidden;cursor:pointer}
+.lab-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.lc-beginner::before{background:var(--success)}
+.lc-intermediate::before{background:var(--warn)}
+.lc-advanced::before{background:var(--danger)}
+.lc-chain::before{background:linear-gradient(90deg,var(--accent5),var(--danger))}
+.lc-hardened::before{background:var(--accent2)}
+.lab-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.lc-running{border-color:rgba(0,255,157,.35)!important;box-shadow:0 0 12px rgba(0,255,157,.08)}
+.lc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.lc-id{font-family:var(--fm);font-size:10px;color:var(--text3)}
+.lc-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.lc-vuln{font-family:var(--fm);font-size:11px;color:var(--accent);margin-bottom:6px}
+.lc-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;min-height:30px}
+.lc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.lc-status{display:flex;align-items:center;gap:6px}
+.sind{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sind-running{background:var(--success);box-shadow:0 0 6px var(--success);animation:pulse 2s infinite}
+.sind-stopped{background:var(--text3)}
+.sind-starting{background:var(--warn);animation:pulse .8s infinite}
+.stxt{font-family:var(--fm);font-size:11px;color:var(--text3)}
+.sport{font-family:var(--fm);font-size:11px;color:var(--text3);margin-left:auto}
+.lc-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{font-family:var(--fm);font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:5px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:8px 12px;color:var(--text);font-family:var(--fm);font-size:12px;transition:border-color .15s;outline:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,.1)}
+.form-textarea{min-height:100px;resize:vertical;line-height:1.6}
+.form-select option{background:var(--bg3)}
+
+/* TERMINAL */
+.terminal{background:#010609;border:1px solid var(--border);border-radius:6px;overflow:hidden;font-family:var(--fm);font-size:12px}
+.term-bar{background:var(--bg3);padding:7px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.tdot{width:10px;height:10px;border-radius:50%}
+.term-title{font-size:11px;color:var(--text3);margin-left:4px;flex:1}
+.term-body{padding:12px 14px;min-height:120px;max-height:420px;overflow-y:auto;line-height:1.75}
+.tc{color:var(--accent)} .tg{color:var(--accent2)} .tr{color:var(--danger)}
+.ty{color:var(--accent4)} .td{color:var(--text3)} .tw{color:#fff} .tp{color:var(--accent5)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 16px;cursor:pointer;font-family:var(--fu);font-size:13px;font-weight:600;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;margin-top:4px}
+.sec-title{font-family:var(--fh);font-size:12px;letter-spacing:2px;white-space:nowrap}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.sec-count{font-family:var(--fm);font-size:10px;color:var(--text3);white-space:nowrap}
+
+/* TOOL GRID */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+.tool-item{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:7px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s}
+.tool-item:hover{border-color:var(--border2)}
+.tool-item.sel{border-color:var(--accent);background:rgba(0,212,255,.05)}
+.tool-cb{width:14px;height:14px;border-radius:2px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.tool-item.sel .tool-cb{background:var(--accent);border-color:var(--accent);color:#000}
+.tool-name{font-family:var(--fm);font-size:11px;color:var(--text2)}
+.tool-cat{font-size:9px;color:var(--text3);letter-spacing:1px}
+
+/* CHAT */
+.chat-messages{display:flex;flex-direction:column;gap:12px;min-height:200px}
+.chat-msg{display:flex;gap:10px}
+.chat-av{width:28px;height:28px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.chat-av.user{background:rgba(0,212,255,.1);border:1px solid var(--accent)}
+.chat-av.ai{background:rgba(0,255,157,.1);border:1px solid var(--accent2)}
+.chat-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-size:13px;line-height:1.6;flex:1}
+.chat-bubble.ai{border-color:rgba(0,255,157,.2)}
+.chat-input-row{display:flex;gap:8px;margin-top:12px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:8px;width:760px;max-width:95vw;max-height:88vh;overflow-y:auto}
+.modal-hdr{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--fh);font-size:13px;letter-spacing:2px;color:var(--accent)}
+.modal-close{cursor:pointer;color:var(--text3);font-size:20px;line-height:1}
+.modal-close:hover{color:var(--accent3)}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* REPLAY */
+.replay-timeline{background:var(--bg3);border-radius:4px;height:6px;position:relative;cursor:pointer;margin:8px 0}
+.replay-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .3s}
+.replay-thumb{position:absolute;top:-5px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);transform:translateX(-50%);transition:left .3s}
+
+/* TOGGLE */
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle-track{width:36px;height:20px;background:var(--bg3);border-radius:10px;border:1px solid var(--border2);position:relative;transition:background .2s}
+.toggle-track.on{background:rgba(0,255,157,.2);border-color:var(--accent2)}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text3);transition:all .2s}
+.toggle-track.on .toggle-thumb{left:18px;background:var(--accent2)}
+
+/* MISC */
+.page{animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+.row{display:flex;align-items:center;gap:10px}
+.sep{height:1px;background:var(--border);margin:12px 0}
+input[type=range]{accent-color:var(--accent);width:100%}
+code{font-family:var(--fm);background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--accent4)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚡ LABFORGE</div>
+    <div class="logo-sub">PENTEST TEACHING PLATFORM</div>
+    <div class="logo-role" id="role-badge">👨‍🏫 TEACHER / ADMIN</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">OVERVIEW</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><span class="icon">⬛</span>Dashboard</div>
+
+    <div class="nav-sec">LAB MANAGEMENT</div>
+    <div class="nav-item" onclick="nav('labs')"><span class="icon">🖥️</span>Lab Manager<span class="nbadge nbadge-cyan" id="nb-total">29</span></div>
+    <div class="nav-item" onclick="nav('deploy')"><span class="icon">🚀</span>Deploy<span class="nbadge nbadge-green" id="nb-running">0</span></div>
+    <div class="nav-item" onclick="nav('builder')"><span class="icon">🔧</span>Lab Builder</div>
+
+    <div class="nav-sec">MONITORING</div>
+    <div class="nav-item" onclick="nav('monitor')"><span class="icon">👁️</span>Attack Monitor<span class="nbadge nbadge-red" id="nb-live" style="display:none">LIVE</span></div>
+    <div class="nav-item" onclick="nav('replay')"><span class="icon">⏮️</span>Session Replay</div>
+
+    <div class="nav-sec">AI TOOLS</div>
+    <div class="nav-item" onclick="nav('advisor')"><span class="icon">🤖</span>AI Advisor</div>
+    <div class="nav-item" onclick="nav('models')"><span class="icon">🧠</span>LLM Manager</div>
+
+    <div class="nav-sec">RESOURCES</div>
+    <div class="nav-item" onclick="nav('cheatsheets')"><span class="icon">📋</span>Cheatsheets</div>
+    <div class="nav-item" onclick="nav('downloads')"><span class="icon">📥</span>Downloads</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div><span class="sdot"></span><span id="sf-docker">Docker: checking…</span></div>
+    <div style="margin-top:4px;margin-left:12px"><span id="sf-running">0 labs running</span></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">DASHBOARD</div>
+    <div class="topbar-right">
+      <div class="pill" id="pill-docker">🐳 Docker</div>
+      <div class="pill" id="pill-ollama">🤖 Ollama</div>
+      <div class="pill" id="pill-clock">🕐 --:--:--</div>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+</div>
+
+<!-- LAB DETAIL MODAL -->
+<div class="modal-overlay" id="labModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="lm-title">LAB DETAIL</div>
+      <div class="modal-close" onclick="closeModal('labModal')">✕</div>
+    </div>
+    <div class="modal-body" id="lm-body"></div>
+    <div class="modal-footer" id="lm-footer"></div>
+  </div>
+</div>
+
+<!-- CHEATSHEET MODAL -->
+<div class="modal-overlay" id="csModal">
+  <div class="modal" style="width:860px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="cs-title">CHEATSHEET</div>
+      <div class="modal-close" onclick="closeModal('csModal')">✕</div>
+    </div>
+    <div class="modal-body" id="cs-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('csModal')">Close</button>
+      <button class="btn btn-cyan btn-sm" onclick="downloadCheatsheet()">📥 Download .md</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA MODEL
+// All labs = Dockerized server targets for pentester students
+// Teacher deploys them, students attack, teacher monitors
+// ═══════════════════════════════════════════════════════════
+const API = '';  // same-origin backend
+
+// difficulty badges
+const DIFF_CLASS = { beginner:'bg-green', intermediate:'bg-orange', advanced:'bg-red', chain:'bg-purple', hardened:'bg-cyan' };
+function diffBadge(d){ return `<span class="badge ${DIFF_CLASS[d]||'bg-gray'}">${d.toUpperCase()}</span>`; }
+
+// ── 20 Beginner Labs (your original 20 vulnerable Docker servers) ────────────
+const BEGINNER_LABS = [
+  { id:'01', name:'SQL Injection — Error-Based',    vuln:'SQLi',           port:8001, db:'PostgreSQL', desc:'Raw string concat in SQL. Dump users, bypass login, extract schema.', tags:['sqli'],          tools:['sqlmap','curl','burpsuite','ghauri'] },
+  { id:'02', name:'SQL Injection — Blind',          vuln:'Blind SQLi',     port:8002, db:'MySQL',      desc:'No error output. Boolean and time-based inference to extract data.', tags:['sqli','blind'],   tools:['sqlmap','ghauri','burpsuite'] },
+  { id:'03', name:'IDOR — Integer IDs',             vuln:'IDOR',           port:8003, db:'PostgreSQL', desc:'Sequential IDs on accounts/docs. Any user can read any other user.', tags:['idor'],          tools:['burpsuite','ffuf','curl'] },
+  { id:'04', name:'IDOR — Swagger Exposed',         vuln:'IDOR+Swagger',   port:8004, db:'PostgreSQL', desc:'Swagger UI leaks all endpoints. IDOR on user/order resources.', tags:['idor','swagger'],    tools:['burpsuite','ffuf','postman'] },
+  { id:'05', name:'Stored XSS',                     vuln:'XSS',            port:8005, db:'MySQL',      desc:'User input saved to DB and reflected unsanitised to all visitors.', tags:['xss'],            tools:['burpsuite','dalfox','curl'] },
+  { id:'06', name:'Broken Auth — JWT None',         vuln:'JWT',            port:8006, db:'PostgreSQL', desc:'Weak secret + alg:none accepted. Forge any token including admin.', tags:['auth','jwt'],     tools:['burpsuite','jwt_tool','curl'] },
+  { id:'07', name:'Broken Auth — Predictable Sessions', vuln:'Session',    port:8007, db:'Redis',      desc:'Session IDs are sequential integers in Redis. Enumerate to hijack.', tags:['auth','session'], tools:['burpsuite','curl','redis-cli'] },
+  { id:'08', name:'SSRF — Webhook Tester',          vuln:'SSRF',           port:8008, db:'PostgreSQL', desc:'Webhook fetches any URL. Reach internal services and metadata.', tags:['ssrf'],             tools:['burpsuite','curl','ssrfmap'] },
+  { id:'09', name:'RCE — File Upload',              vuln:'RCE',            port:8009, db:'MySQL',      desc:'No MIME/extension validation. Upload script, request it to execute.', tags:['rce','upload'],  tools:['burpsuite','curl','weevely'] },
+  { id:'10', name:'Path Traversal / LFI',           vuln:'LFI',            port:8010, db:'None',       desc:'File endpoint uses raw user path. Traverse to read any system file.', tags:['lfi'],          tools:['burpsuite','ffuf','curl'] },
+  { id:'11', name:'XXE Injection',                  vuln:'XXE',            port:8011, db:'PostgreSQL', desc:'XML parser with external entities on. Read files, probe internal net.', tags:['xxe','xml'],   tools:['burpsuite','curl'] },
+  { id:'12', name:'NoSQL Injection — Redis',        vuln:'NoSQL',          port:8012, db:'Redis',      desc:'User input into Redis commands. Inject operators, bypass auth.', tags:['nosql'],            tools:['burpsuite','curl','redis-cli'] },
+  { id:'13', name:'IDOR — UUID Bypass',             vuln:'IDOR+UUID',      port:8013, db:'PostgreSQL', desc:'UUIDs look unguessable but no ownership check. Enumerate them.', tags:['idor','uuid'],      tools:['burpsuite','ffuf','curl'] },
+  { id:'14', name:'Mass Assignment',                vuln:'Mass Assignment', port:8014, db:'MySQL',      desc:'API passes full request body to ORM. Send role=admin to escalate.', tags:['api'],           tools:['burpsuite','curl','postman'] },
+  { id:'15', name:'No Rate Limiting — Bruteforce',  vuln:'Bruteforce',     port:8015, db:'Redis+PG',   desc:'Login+OTP have no lockout. Freely brute-force passwords and OTPs.', tags:['bruteforce'],    tools:['hydra','ffuf','burpsuite'] },
+  { id:'16', name:'API Swagger Info Disclosure',    vuln:'Disclosure',     port:8016, db:'MySQL',      desc:'Swagger left on in prod. All routes, schemas, admin endpoints exposed.', tags:['api','recon'], tools:['burpsuite','curl','nuclei'] },
+  { id:'17', name:'GraphQL Introspection',          vuln:'GraphQL',        port:8017, db:'PostgreSQL', desc:'Introspection on exposes full schema. Field injection + batching DoS.', tags:['graphql'],     tools:['burpsuite','curl','inql'] },
+  { id:'18', name:'CORS Misconfiguration',          vuln:'CORS',           port:8018, db:'PostgreSQL', desc:'Origin reflected + ACAO:* with credentials. Read auth responses cross-origin.', tags:['cors'], tools:['burpsuite','curl'] },
+  { id:'19', name:'Redis — Unauthenticated',        vuln:'Unauth DB',      port:8019, db:'Redis',      desc:'Redis exposed with no auth. Dump all keys: sessions, flags, creds.', tags:['redis','db'],   tools:['redis-cli','nmap','curl'] },
+  { id:'20', name:'MySQL — Weak Credentials',       vuln:'Weak Creds',     port:8020, db:'MySQL',      desc:'MySQL on host network, admin:admin, root:root. Dump tables directly.', tags:['db','creds'],  tools:['mysql','hydra','nmap'] },
+];
+
+// ── 1 Hardened Reference Lab ─────────────────────────────────────────────────
+const HARDENED_LAB = { id:'21', name:'Hardened Reference App', vuln:'Defense', port:8021, db:'PG+Redis', desc:'Every vulnerability fixed. Study this to understand what secure looks like for each scenario.', tags:['defense','hardened'], tools:[] };
+
+// ── 6 Chain / Combo Labs (new — multi-container scenarios) ───────────────────
+const CHAIN_LABS = [
+  {
+    id:'C01', name:'Recon → SQLi → Auth Bypass',
+    vuln:'3-Stage Chain', port:9001, db:'PostgreSQL',
+    desc:'Stage 1: Swagger recon leaks hidden /admin endpoint. Stage 2: SQLi on search. Stage 3: Use extracted hash to bypass JWT auth.',
+    tags:['chain','sqli','jwt'], tools:['burpsuite','sqlmap','jwt_tool'],
+    containers:['c01-api','c01-db'],
+    stages:['Swagger recon → find /admin','SQLi on /search → dump users+hashes','Crack hash → forge JWT → admin access'],
+    flag:'FLAG{recon_sqli_jwt_chain_complete}'
+  },
+  {
+    id:'C02', name:'SSRF → Internal API → RCE',
+    vuln:'3-Stage Chain', port:9002, db:'None',
+    desc:'Stage 1: SSRF via webhook tester reaches internal metadata. Stage 2: Pivot to internal admin API. Stage 3: Command injection on ping endpoint → RCE.',
+    tags:['chain','ssrf','rce'], tools:['burpsuite','curl'],
+    containers:['c02-web','c02-internal'],
+    stages:['SSRF → reach internal-api:3001','Enumerate /admin endpoints','Cmd injection on /admin/ping → exec'],
+    flag:'FLAG{ssrf_pivot_rce_chain}'
+  },
+  {
+    id:'C03', name:'Upload RCE + LFI Combo',
+    vuln:'2-Lab Combo', port:9003, db:'MySQL',
+    desc:'Two vulns, one app. Upload a PHP webshell via the upload endpoint, then use LFI to read /etc/passwd and the app config file to escalate further.',
+    tags:['chain','rce','lfi'], tools:['burpsuite','curl','weevely'],
+    containers:['c03-app','c03-db'],
+    stages:['Upload .php file via /upload','Use LFI to read /etc/passwd','Use LFI to read DB config → connect directly'],
+    flag:'FLAG{upload_lfi_combined}'
+  },
+  {
+    id:'C04', name:'XSS → CSRF → Account Takeover',
+    vuln:'3-Stage Chain', port:9004, db:'MySQL',
+    desc:'Stored XSS in a comment field. Use it to deliver a CSRF payload that changes admin email. Then trigger password reset to fully take over the admin account.',
+    tags:['chain','xss','csrf'], tools:['burpsuite','curl'],
+    containers:['c04-app','c04-db'],
+    stages:['Store XSS payload in comment','XSS delivers CSRF → changes admin email','Trigger password reset → full account takeover'],
+    flag:'FLAG{xss_csrf_account_takeover}'
+  },
+  {
+    id:'C05', name:'Mass Assignment + IDOR + Data Exfil',
+    vuln:'3-Stage Chain', port:9005, db:'PostgreSQL',
+    desc:'Escalate your account to admin via mass assignment, then use IDOR to enumerate all user profiles, then dump all orders including credit card last4.',
+    tags:['chain','api','idor'], tools:['burpsuite','curl','postman','ffuf'],
+    containers:['c05-api','c05-db'],
+    stages:['Mass assignment → set role:admin','IDOR — enumerate all /users/1..N','Dump all orders → extract card data'],
+    flag:'FLAG{mass_assign_idor_exfil}'
+  },
+  {
+    id:'C06', name:'Full Pentest — Corporate App',
+    vuln:'Open-Ended Scenario', port:9006, db:'PostgreSQL+Redis',
+    desc:'Realistic corporate web app. No pre-defined path. Find all 7 hidden vulnerabilities: SQLi, IDOR, broken auth, CORS, mass assignment, info disclosure, weak creds. Document each.',
+    tags:['chain','realistic','owasp'], tools:['burpsuite','sqlmap','ffuf','curl','nuclei','jwt_tool'],
+    containers:['c06-app','c06-db','c06-redis'],
+    stages:['Reconnaissance — find all endpoints','Find and exploit each OWASP vulnerability','Document findings in pentest report format'],
+    flag:'7 flags hidden in the app'
+  },
+];
+
+const ALL_LABS = [...BEGINNER_LABS, HARDENED_LAB, ...CHAIN_LABS];
+
+// All available pentest tools
+const ALL_TOOLS = [
+  {name:'sqlmap',   cat:'SQLi',      desc:'Automated SQL injection',    install:'pip install sqlmap'},
+  {name:'ghauri',   cat:'SQLi',      desc:'Advanced blind SQLi',        install:'pip install ghauri'},
+  {name:'hydra',    cat:'Bruteforce',desc:'Credential brute force',     install:'apt install hydra'},
+  {name:'ffuf',     cat:'Fuzzing',   desc:'Web fuzzing / dir scan',     install:'go install ffuf/v2@latest'},
+  {name:'nmap',     cat:'Recon',     desc:'Port and service scanner',   install:'apt install nmap'},
+  {name:'burpsuite',cat:'Proxy',     desc:'HTTP proxy + interceptor',   install:'portswigger.net'},
+  {name:'nuclei',   cat:'Scanner',   desc:'Template-based vuln scanner',install:'go install nuclei/v3@latest'},
+  {name:'jwt_tool', cat:'Auth',      desc:'JWT attack toolkit',         install:'pip install jwt_tool'},
+  {name:'dalfox',   cat:'XSS',       desc:'XSS parameter scanner',      install:'go install dalfox/v2@latest'},
+  {name:'wpscan',   cat:'CMS',       desc:'WordPress vulnerability scan',install:'gem install wpscan'},
+  {name:'redis-cli',cat:'DB',        desc:'Redis direct access',        install:'apt install redis-tools'},
+  {name:'mysql',    cat:'DB',        desc:'MySQL CLI client',           install:'apt install mysql-client'},
+  {name:'metasploit',cat:'Exploit',  desc:'Exploit framework',          install:'apt install metasploit-framework'},
+  {name:'weevely',  cat:'RCE',       desc:'PHP webshell toolkit',       install:'apt install weevely'},
+  {name:'curl',     cat:'HTTP',      desc:'Manual HTTP testing',        install:'built-in'},
+  {name:'postman',  cat:'API',       desc:'API testing GUI',            install:'postman.com'},
+  {name:'ssrfmap',  cat:'SSRF',      desc:'SSRF exploitation tool',     install:'pip install ssrfmap'},
+  {name:'inql',     cat:'GraphQL',   desc:'GraphQL security scanner',   install:'pip install inql'},
+  {name:'enum4linux',cat:'Recon',    desc:'SMB enumeration',            install:'apt install enum4linux'},
+  {name:'proxychains',cat:'Pivot',   desc:'Proxy chain routing',        install:'apt install proxychains4'},
+];
+
+// Saved lab sessions (for replay)
+const SESSIONS = [];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentPage = 'dashboard';
+let labStates   = {};  // id → 'stopped'|'starting'|'running'|'stopping'
+let labPending  = {};
+let monitorSSE  = null;
+let monitorInterval = null;
+let monitorStartTime = null;
+let monitorStats = { lines:0, attacks:0, errors:0, types:{} };
+let sessionLog  = [];  // full replay buffer
+let llmHistory  = [];
+let selectedTools = new Set(['sqlmap','burpsuite','curl','nmap','ffuf']);
+
+ALL_LABS.forEach(l => labStates[l.id] = 'stopped');
+setInterval(() => syncStatus(true), 8000);
+
+// ═══════════════════════════════════════════════════════════
+// ROUTING
+// ═══════════════════════════════════════════════════════════
+function nav(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const titles = {
+    dashboard:'DASHBOARD', labs:'LAB MANAGER', deploy:'DEPLOY LABS',
+    builder:'LAB BUILDER', monitor:'ATTACK MONITOR', replay:'SESSION REPLAY',
+    advisor:'AI ADVISOR', models:'LLM MANAGER',
+    cheatsheets:'CHEATSHEETS', downloads:'DOWNLOADS',
+  };
+  document.getElementById('page-title').textContent = titles[page] || page.toUpperCase();
+  event?.currentTarget?.classList.add('active');
+  // Update active nav item by page key
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick')?.includes(`'${page}'`)) el.classList.add('active');
+  });
+  const renders = { dashboard:renderDashboard, labs:renderLabs, deploy:renderDeploy, builder:renderBuilder, monitor:renderMonitor, replay:renderReplay, advisor:renderAdvisor, models:renderModels, cheatsheets:renderCheatsheets, downloads:renderDownloads };
+  const fn = renders[page];
+  if (fn) document.getElementById('content').innerHTML = `<div class="page">${fn()}</div>`;
+  if (page === 'models') setTimeout(loadModels, 50);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const running = ALL_LABS.filter(l => labStates[l.id] === 'running');
+  return `
+  <div class="grid-4" style="margin-bottom:16px">
+    <div class="card"><div class="card-body" style="padding:14px">
+      <div class="stat-val sv-cyan">${BEGINNER_LABS.length}</div>
+      <div class="stat-label">BEGINNER LABS</div>
+    </div></div>
+    <div class="card"><div class="card-body" style="padding:14px">
+      <div class="stat-val sv-purple">${CHAIN_LABS.length}</div>
+      <div class="stat-label">CHAIN LABS</div>
+    </div></div>
+    <div class="card"><div class="card-body" style="padding:14px">
+      <div class="stat-val sv-green">${running.length}</div>
+      <div class="stat-label">DEPLOYED NOW</div>
+    </div></div>
+    <div class="card"><div class="card-body" style="padding:14px">
+      <div class="stat-val sv-gold">${SESSIONS.length}</div>
+      <div class="stat-label">SAVED SESSIONS</div>
+    </div></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-hdr">DEPLOYED LABS
+        ${running.length ? `<button class="btn btn-cyan btn-xs" onclick="nav('monitor')">👁 Monitor</button>` : ''}
+      </div>
+      <div class="card-body" style="padding:6px;max-height:220px;overflow-y:auto">
+        ${running.length === 0
+          ? `<div style="padding:20px;text-align:center;font-family:var(--fm);font-size:12px;color:var(--text3)">
+               No labs deployed — go to Deploy to start one
+             </div>`
+          : running.map(l => `
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)">
+              <span class="sind sind-running"></span>
+              <span style="font-size:13px;font-weight:600;flex:1">${l.name}</span>
+              <span style="font-family:var(--fm);font-size:10px;color:var(--text3)">:${l.port}</span>
+              <button class="btn btn-cyan btn-xs" onclick="quickMonitor('${l.id}')">👁</button>
+              <a href="http://localhost:${l.port}" target="_blank" class="btn btn-ghost btn-xs">🔗</a>
+              <button class="btn btn-red btn-xs" onclick="stopLab('${l.id}')">⬛</button>
+            </div>`).join('')
+        }
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">PLATFORM GUIDE</div>
+      <div class="card-body">
+        ${[
+          {icon:'🖥️', step:'Lab Manager',    desc:'Browse all 29 labs. View scenario, tools, cheatsheet.'},
+          {icon:'🚀', step:'Deploy',          desc:'Start a lab as a Docker container. Share the port with students.'},
+          {icon:'🔧', step:'Lab Builder',     desc:'Create new lab scenarios. Set tools, scenario, generate cheatsheet.'},
+          {icon:'👁️', step:'Attack Monitor',  desc:'Watch student attacks live. SSE stream from Docker logs.'},
+          {icon:'⏮️', step:'Session Replay',  desc:'Replay any session. Pause, discuss, annotate with students.'},
+        ].map(s => `
+          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+            <div style="font-size:18px;flex-shrink:0">${s.icon}</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--text)">${s.step}</div>
+              <div style="font-size:12px;color:var(--text2)">${s.desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">LAB CATALOG OVERVIEW</div>
+    <div class="card-body" style="padding:10px 16px">
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:2px">BEGINNER (01–20)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${BEGINNER_LABS.map(l => {
+              const s = labStates[l.id] || 'stopped';
+              return `<span title="${l.name}" style="font-family:var(--fm);font-size:10px;padding:2px 7px;border-radius:3px;cursor:pointer;background:${s==='running'?'rgba(0,255,157,.15)':'var(--bg3)'};border:1px solid ${s==='running'?'var(--accent2)':'var(--border)'};color:${s==='running'?'var(--accent2)':'var(--text3)'}" onclick="openLabModal('${l.id}')">${l.id}</span>`;
+            }).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:2px">CHAIN LABS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${CHAIN_LABS.map(l => {
+              const s = labStates[l.id] || 'stopped';
+              return `<span title="${l.name}" style="font-family:var(--fm);font-size:10px;padding:2px 7px;border-radius:3px;cursor:pointer;background:${s==='running'?'rgba(168,85,247,.15)':'var(--bg3)'};border:1px solid ${s==='running'?'var(--accent5)':'var(--border)'};color:${s==='running'?'var(--accent5)':'var(--text3)'}" onclick="openLabModal('${l.id}')">${l.id}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LAB MANAGER — browse all labs
+// ═══════════════════════════════════════════════════════════
+function renderLabs() {
+  return `
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="position:relative;flex:1;min-width:180px">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3)">🔍</span>
+      <input class="form-input" id="lab-search" placeholder="Search labs…" oninput="filterLabs()" style="padding-left:30px">
+    </div>
+    <select class="form-select" style="width:160px" id="lab-diff-filter" onchange="filterLabs()">
+      <option value="">All Difficulties</option>
+      <option value="beginner">🟢 Beginner</option>
+      <option value="intermediate">🟡 Intermediate</option>
+      <option value="advanced">🔴 Advanced</option>
+      <option value="chain">💀 Chain</option>
+    </select>
+    <select class="form-select" style="width:160px" id="lab-tag-filter" onchange="filterLabs()">
+      <option value="">All Tags</option>
+      ${[...new Set(ALL_LABS.flatMap(l=>l.tags))].sort().map(t=>`<option value="${t}">${t}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title" style="color:var(--accent2)">🟢 BEGINNER LABS</div>
+    <div class="sec-line"></div>
+    <div class="sec-count">${BEGINNER_LABS.length} labs</div>
+  </div>
+  <div class="labs-grid" id="beginner-grid" style="margin-bottom:24px">
+    ${BEGINNER_LABS.map(l => labCard(l, 'beginner')).join('')}
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title" style="color:var(--accent2)">🛡️ HARDENED REFERENCE</div>
+    <div class="sec-line"></div>
+    <div class="sec-count">1 lab</div>
+  </div>
+  <div class="labs-grid" id="hardened-grid" style="margin-bottom:24px">
+    ${labCard(HARDENED_LAB, 'hardened')}
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title" style="color:var(--accent5)">⛓️ CHAIN / COMBO LABS</div>
+    <div class="sec-line"></div>
+    <div class="sec-count">${CHAIN_LABS.length} labs</div>
+  </div>
+  <div class="labs-grid" id="chain-grid">
+    ${CHAIN_LABS.map(l => labCard(l, 'chain')).join('')}
+  </div>`;
+}
+
+function labCard(lab, tier) {
+  const s = labStates[lab.id] || 'stopped';
+  return `
+  <div class="lab-card lc-${tier} ${s==='running'?'lc-running':''}" id="lc-${lab.id}" onclick="openLabModal('${lab.id}')">
+    <div class="lc-top">
+      <span class="lc-id">${lab.id}</span>
+      ${diffBadge(tier === 'chain' ? 'chain' : tier === 'hardened' ? 'hardened' : (lab.port>=9001?'advanced':'beginner'))}
+    </div>
+    <div class="lc-name">${lab.name}</div>
+    <div class="lc-vuln">${lab.vuln}</div>
+    <div class="lc-desc">${lab.desc}</div>
+    <div class="lc-tags">${lab.tags.map(t=>`<span class="badge bg-cyan">${t}</span>`).join('')}</div>
+    <div class="lc-status">
+      <span class="sind sind-${s}"></span>
+      <span class="stxt">${s.toUpperCase()}</span>
+      <span class="sport">:${lab.port}</span>
+    </div>
+    <div class="lc-actions" onclick="event.stopPropagation()">
+      ${s==='running'
+        ? `<button class="btn btn-red btn-xs" onclick="stopLab('${lab.id}')">⬛ Stop</button>
+           <a href="http://localhost:${lab.port}" target="_blank" class="btn btn-cyan btn-xs">🔗 Open</a>
+           <button class="btn btn-ghost btn-xs" onclick="quickMonitor('${lab.id}')">👁 Monitor</button>`
+        : `<button class="btn btn-green btn-xs" onclick="startLab('${lab.id}')">▶ Deploy</button>`
+      }
+      <button class="btn btn-ghost btn-xs" onclick="openCheatsheet('${lab.id}')">📋 Sheet</button>
+    </div>
+  </div>`;
+}
+
+function filterLabs() {
+  const q    = (document.getElementById('lab-search')?.value||'').toLowerCase();
+  const diff = document.getElementById('lab-diff-filter')?.value||'';
+  const tag  = document.getElementById('lab-tag-filter')?.value||'';
+  ALL_LABS.forEach(l => {
+    const el = document.getElementById('lc-'+l.id);
+    if (!el) return;
+    const tier = l.id.startsWith('C') ? 'chain' : l.id==='21' ? 'hardened' : 'beginner';
+    const matchQ = !q || l.name.toLowerCase().includes(q) || l.vuln.toLowerCase().includes(q) || l.tags.some(t=>t.includes(q));
+    const matchD = !diff || (diff==='chain'?tier==='chain':diff==='beginner'&&tier!=='chain');
+    const matchT = !tag || l.tags.includes(tag);
+    el.parentElement.style.display = (matchQ&&matchD&&matchT) ? '' : 'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEPLOY — teacher starts labs for students
+// ═══════════════════════════════════════════════════════════
+function renderDeploy() {
+  const running = ALL_LABS.filter(l => labStates[l.id] === 'running');
+  const stopped = ALL_LABS.filter(l => (labStates[l.id]||'stopped') === 'stopped');
+  return `
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-hdr">QUICK DEPLOY</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">SELECT LAB</label>
+          <select class="form-select" id="deploy-select">
+            <optgroup label="── Beginner Labs ──">
+              ${BEGINNER_LABS.map(l=>`<option value="${l.id}" ${labStates[l.id]==='running'?'disabled':''}>Lab ${l.id}: ${l.name} [:${l.port}] ${labStates[l.id]==='running'?'(running)':''}</option>`).join('')}
+            </optgroup>
+            <optgroup label="── Hardened Reference ──">
+              <option value="21">Lab 21: ${HARDENED_LAB.name} [:${HARDENED_LAB.port}]</option>
+            </optgroup>
+            <optgroup label="── Chain Labs ──">
+              ${CHAIN_LABS.map(l=>`<option value="${l.id}" ${labStates[l.id]==='running'?'disabled':''}>Lab ${l.id}: ${l.name} [:${l.port}] ${labStates[l.id]==='running'?'(running)':''}</option>`).join('')}
+            </optgroup>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-green btn-sm" onclick="deploySelected()">▶ Deploy Lab</button>
+          <button class="btn btn-gold btn-sm" onclick="deployAllBeginner()">▶ Deploy All Beginner</button>
+          <button class="btn btn-red btn-sm" onclick="stopAllLabs()">⬛ Stop All</button>
+        </div>
+        <div style="margin-top:12px;font-family:var(--fm);font-size:11px;color:var(--text3);line-height:1.8">
+          Share the lab port with your students.<br>
+          e.g. <code>http://YOUR_IP:8001</code> for Lab 01
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">RUNNING LABS <span style="font-size:10px">${running.length} active</span></div>
+      <div class="card-body" style="padding:6px;max-height:220px;overflow-y:auto">
+        ${running.length === 0
+          ? `<div style="padding:16px;text-align:center;font-family:var(--fm);font-size:12px;color:var(--text3)">No labs running</div>`
+          : running.map(l => `
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)">
+              <span class="sind sind-running"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.name}</div>
+                <div style="font-family:var(--fm);font-size:10px;color:var(--text3)">localhost:${l.port}</div>
+              </div>
+              <button class="btn btn-cyan btn-xs" onclick="quickMonitor('${l.id}')">👁</button>
+              <a href="http://localhost:${l.port}" target="_blank" class="btn btn-ghost btn-xs">🔗</a>
+              <button class="btn btn-red btn-xs" onclick="stopLab('${l.id}')">⬛</button>
+            </div>`).join('')
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">ALL LABS STATUS</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px">
+          <th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)">ID</th>
+          <th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)">NAME</th>
+          <th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)">VULN</th>
+          <th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)">PORT</th>
+          <th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)">STATUS</th>
+          <th style="padding:8px 12px;border-bottom:1px solid var(--border)">ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ALL_LABS.map(l => {
+          const s = labStates[l.id] || 'stopped';
+          return `<tr style="border-bottom:1px solid rgba(255,255,255,.03)" id="tr-${l.id}">
+            <td style="padding:7px 12px;font-family:var(--fm);color:var(--text3)">${l.id}</td>
+            <td style="padding:7px 12px;font-weight:600">${l.name}</td>
+            <td style="padding:7px 12px;font-family:var(--fm);font-size:11px;color:var(--accent)">${l.vuln}</td>
+            <td style="padding:7px 12px;font-family:var(--fm);color:var(--text3)">:${l.port}</td>
+            <td style="padding:7px 12px">
+              <span class="sind sind-${s}" style="vertical-align:middle"></span>
+              <span style="font-family:var(--fm);font-size:11px;color:var(--text3);margin-left:5px">${s}</span>
+            </td>
+            <td style="padding:7px 12px;display:flex;gap:5px;justify-content:flex-end">
+              ${s==='running'
+                ? `<button class="btn btn-red btn-xs" onclick="stopLab('${l.id}')">⬛</button>
+                   <button class="btn btn-cyan btn-xs" onclick="quickMonitor('${l.id}')">👁</button>`
+                : `<button class="btn btn-green btn-xs" onclick="startLab('${l.id}')">▶</button>`
+              }
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LAB BUILDER — teacher creates new scenarios
+// ═══════════════════════════════════════════════════════════
+function renderBuilder() {
+  return `
+  <div class="tabs" id="builder-tabs">
+    <div class="tab active" onclick="builderTab('scenario',this)">1. Scenario</div>
+    <div class="tab" onclick="builderTab('tools',this)">2. Tools</div>
+    <div class="tab" onclick="builderTab('readme',this)">3. README</div>
+    <div class="tab" onclick="builderTab('compose',this)">4. docker-compose</div>
+    <div class="tab" onclick="builderTab('cheatsheet',this)">5. Cheatsheet</div>
+  </div>
+
+  <!-- STEP 1: SCENARIO -->
+  <div id="bt-scenario">
+    <div class="grid-2">
+      <div class="stack">
+        <div class="card">
+          <div class="card-hdr">LAB SCENARIO</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">LAB NAME</label>
+              <input class="form-input" id="b-name" placeholder="e.g., SQLi Advanced — Header Injection">
+            </div>
+            <div class="form-group">
+              <label class="form-label">VULNERABILITY TYPE</label>
+              <select class="form-select" id="b-vuln">
+                <option>SQL Injection</option><option>Blind SQLi</option><option>XSS (Stored)</option>
+                <option>XSS (Reflected)</option><option>IDOR</option><option>SSRF</option>
+                <option>RCE via Upload</option><option>Path Traversal / LFI</option>
+                <option>XXE Injection</option><option>Broken Auth (JWT)</option>
+                <option>NoSQL Injection</option><option>GraphQL</option>
+                <option>CORS Misconfiguration</option><option>Mass Assignment</option>
+                <option>Command Injection</option><option>Deserialization</option>
+                <option>Chain (Custom)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">DIFFICULTY</label>
+              <select class="form-select" id="b-diff">
+                <option value="beginner">🟢 Beginner</option>
+                <option value="intermediate">🟡 Intermediate</option>
+                <option value="advanced">🔴 Advanced</option>
+                <option value="chain">⛓️ Chain / Combo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">BACKEND STACK</label>
+              <select class="form-select" id="b-stack">
+                <option>Node.js + Express</option><option>Python + FastAPI</option>
+                <option>Python + Flask</option><option>PHP + Apache</option>
+                <option>Java + Spring Boot</option><option>Go + Gin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">DATABASE</label>
+              <select class="form-select" id="b-db">
+                <option>PostgreSQL</option><option>MySQL</option><option>Redis</option>
+                <option>MongoDB</option><option>SQLite</option><option>None</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PORT</label>
+              <input class="form-input" type="number" id="b-port" value="9010">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-hdr">SCENARIO DESCRIPTION</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">SCENARIO (what the student will face)</label>
+              <textarea class="form-textarea" id="b-desc" style="min-height:120px" placeholder="Describe the vulnerable application context. What is it simulating? What is the student's role?"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ATTACK STAGES (one per line)</label>
+              <textarea class="form-textarea" id="b-stages" placeholder="Stage 1: Recon — find hidden endpoint via Swagger&#10;Stage 2: SQLi on /search&#10;Stage 3: Use data to forge JWT"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">FLAG / TARGET RESULT</label>
+              <input class="form-input" id="b-flag" placeholder="FLAG{your_lab_flag_here} or describe the expected outcome">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr">CLONE FROM EXISTING LAB</div>
+          <div class="card-body">
+            <div class="form-group">
+              <select class="form-select" id="b-clone">
+                <option value="">— start from scratch —</option>
+                ${ALL_LABS.map(l=>`<option value="${l.id}">Lab ${l.id}: ${l.name}</option>`).join('')}
+              </select>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="cloneLab()">📋 Load as Template</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-cyan" onclick="builderTab('tools',document.querySelector('.tab:nth-child(2)'))">Next: Select Tools →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: TOOLS -->
+  <div id="bt-tools" style="display:none">
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hdr">ALLOWED PENTEST TOOLS
+        <span style="font-family:var(--fm);font-size:10px;color:var(--text3)">Limit the tools students may use — creates focused scenarios</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px;font-family:var(--fm)">
+          Selected tools will be listed in the student cheatsheet. Unlisted tools should not be used for this lab.
+        </p>
+        <div class="tool-grid">
+          ${ALL_TOOLS.map(t => `
+            <div class="tool-item ${selectedTools.has(t.name)?'sel':''}" onclick="toggleTool('${t.name}',this)">
+              <div class="tool-cb">${selectedTools.has(t.name)?'✓':''}</div>
+              <div>
+                <div class="tool-name">${t.name}</div>
+                <div class="tool-cat">${t.cat}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <button class="btn btn-ghost" onclick="builderTab('scenario',document.querySelector('.tab:first-child'))">← Back</button>
+      <button class="btn btn-cyan" onclick="builderTab('readme',document.querySelector('.tab:nth-child(3)'));genReadme()">Generate README →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: README -->
+  <div id="bt-readme" style="display:none">
+    <div class="card">
+      <div class="card-hdr">GENERATED README.md
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-cyan btn-sm" onclick="genReadme()">🔄 Regenerate</button>
+          <button class="btn btn-green btn-sm" onclick="dlFile('README.md',document.getElementById('b-readme-out').value,'text/markdown')">📥 Download</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea class="form-textarea" id="b-readme-out" style="min-height:380px;font-size:11px;line-height:1.7"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <button class="btn btn-ghost" onclick="builderTab('tools',document.querySelector('.tab:nth-child(2)'))">← Back</button>
+      <button class="btn btn-cyan" onclick="builderTab('compose',document.querySelector('.tab:nth-child(4)'));genCompose()">Generate Compose →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: COMPOSE -->
+  <div id="bt-compose" style="display:none">
+    <div class="card">
+      <div class="card-hdr">GENERATED docker-compose.yml
+        <button class="btn btn-green btn-sm" onclick="dlFile('docker-compose.yml',document.getElementById('b-compose-out').value,'text/yaml')">📥 Download</button>
+      </div>
+      <div class="card-body">
+        <textarea class="form-textarea" id="b-compose-out" style="min-height:300px;font-size:11px;line-height:1.7"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <button class="btn btn-ghost" onclick="builderTab('readme',document.querySelector('.tab:nth-child(3)'))">← Back</button>
+      <button class="btn btn-cyan" onclick="builderTab('cheatsheet',document.querySelector('.tab:nth-child(5)'));genCheatsheet()">Generate Cheatsheet →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: CHEATSHEET -->
+  <div id="bt-cheatsheet" style="display:none">
+    <div class="card">
+      <div class="card-hdr">GENERATED CHEATSHEET.md (for students)
+        <button class="btn btn-green btn-sm" onclick="dlFile('cheatsheet.md',document.getElementById('b-cs-out').value,'text/markdown')">📥 Download</button>
+      </div>
+      <div class="card-body">
+        <textarea class="form-textarea" id="b-cs-out" style="min-height:380px;font-size:11px;line-height:1.7"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;gap:8px">
+      <button class="btn btn-ghost" onclick="builderTab('compose',document.querySelector('.tab:nth-child(4)'))">← Back</button>
+      <button class="btn btn-purple" onclick="genWithAI()">🤖 Improve with AI</button>
+      <button class="btn btn-green" onclick="saveLabToList()">💾 Save Lab</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ATTACK MONITOR — teacher watches live
+// ═══════════════════════════════════════════════════════════
+
+// Attack pattern detector — 12 patterns
+const ATK_PATTERNS = [
+  {re:/'\s*(OR|AND)\s*'?1'?='?1|--\s*$|;\s*DROP\s/i,            type:'SQL Injection',       sev:'HIGH',     col:'tr'},
+  {re:/UNION\s+SELECT|SLEEP\s*\(|pg_sleep|information_schema/i,  type:'SQL Injection',       sev:'HIGH',     col:'tr'},
+  {re:/<script[\s>]|javascript:|onerror\s*=|onload\s*=/i,        type:'XSS',                 sev:'MEDIUM',   col:'ty'},
+  {re:/\.\.[\/\\].*etc[\/\\]passwd|\.\.\/|\.\.%2f/i,             type:'Path Traversal',      sev:'HIGH',     col:'tr'},
+  {re:/169\.254\.169\.254|metadata\.internal|file:\/\//i,        type:'SSRF',                sev:'CRITICAL', col:'tr'},
+  {re:/http:\/\/(127|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/i,type:'SSRF Internal',     sev:'CRITICAL', col:'tr'},
+  {re:/alg.*none|"alg"\s*:\s*"none"/i,                           type:'JWT None Algorithm',  sev:'HIGH',     col:'tr'},
+  {re:/<\?xml|<!ENTITY\s|SYSTEM\s+["']/i,                        type:'XXE Injection',       sev:'HIGH',     col:'tr'},
+  {re:/\$where|\$gt|\$regex|\$nin|\$ne/i,                         type:'NoSQL Injection',     sev:'HIGH',     col:'tr'},
+  {re:/__schema|introspection|__type/i,                           type:'GraphQL Recon',       sev:'MEDIUM',   col:'ty'},
+  {re:/role['":\s]+admin|is_admin['":\s]+true/i,                  type:'Mass Assignment',     sev:'HIGH',     col:'tr'},
+  {re:/FLUSHALL|CONFIG\s+SET|SLAVEOF|KEYS\s+\*/i,                 type:'Redis Attack',        sev:'CRITICAL', col:'tr'},
+];
+
+function detectAttack(line) {
+  for (const p of ATK_PATTERNS) if (p.re.test(line)) return p;
+  return null;
+}
+
+function colourLogLine(raw) {
+  const hit = detectAttack(raw);
+  let html = raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\b(GET|POST|PUT|DELETE|PATCH|OPTIONS)\b/g,'<span class="tc">$1</span>')
+    .replace(/\b([45]\d{2})\b/g,'<span class="tr">$1</span>')
+    .replace(/\b(2\d{2})\b/g,'<span class="tg">$1</span>');
+  if (hit) html += ` <span class="${hit.col}" style="font-size:10px;letter-spacing:1px;font-family:var(--fm)"> ⚠ ${hit.type} [${hit.sev}]</span>`;
+  return html;
+}
+
+function renderMonitor() {
+  const running = ALL_LABS.filter(l => labStates[l.id] === 'running');
+  return `
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-hdr">TARGET LAB</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">SELECT DEPLOYED LAB TO MONITOR</label>
+          <select class="form-select" id="mon-target">
+            ${running.length === 0
+              ? '<option value="">— deploy a lab first —</option>'
+              : running.map(l=>`<option value="${l.id}">[${l.id}] ${l.name} :${l.port}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">LOG SOURCE</label>
+          <select class="form-select" id="mon-src">
+            <option value="sse">📡 Live Stream (SSE — real docker logs)</option>
+            <option value="poll">🔄 Poll every 3s</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-green btn-sm" onclick="monStart()">▶ Start</button>
+          <button class="btn btn-red btn-sm"   onclick="monStop()">⬛ Stop</button>
+          <button class="btn btn-ghost btn-sm" onclick="monClear()">🗑 Clear</button>
+          <button class="btn btn-cyan btn-sm"  onclick="monExport()">📥 Export</button>
+          <button class="btn btn-purple btn-sm" onclick="saveSession()">💾 Save Session</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">LIVE STATS</div>
+      <div class="card-body">
+        <div class="grid-2" style="gap:10px">
+          <div><div class="stat-val sv-cyan" id="ms-lines">0</div><div class="stat-label">LOG LINES</div></div>
+          <div><div class="stat-val sv-red"  id="ms-atk">0</div><div class="stat-label">ATTACKS</div></div>
+          <div><div class="stat-val sv-gold" id="ms-err">0</div><div class="stat-label">4xx/5xx</div></div>
+          <div><div class="stat-val sv-green" id="ms-time">00:00</div><div class="stat-label">ELAPSED</div></div>
+        </div>
+        <div id="ms-breakdown" style="margin-top:10px;font-family:var(--fm);font-size:10px;color:var(--text3);line-height:1.8"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      ATTACK LOG — LIVE DOCKER CONTAINER OUTPUT
+      <span class="badge" id="mon-badge" style="background:rgba(74,122,138,.2);color:var(--text3);border:1px solid var(--border)">IDLE</span>
+    </div>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="tdot" style="background:#ff5f56"></div>
+        <div class="tdot" style="background:#ffbd2e"></div>
+        <div class="tdot" style="background:#27c93f"></div>
+        <div class="term-title" id="mon-term-title">labforge-monitor — select a lab and press Start</div>
+      </div>
+      <div class="term-body" id="mon-log" style="min-height:340px;max-height:460px">
+        <div class="td">[ LABFORGE MONITOR ] Real-time Docker log streaming via SSE</div>
+        <div class="td">[ USAGE ] Deploy a lab → click Start → watch student attacks in real time</div>
+        <div class="td">[ SSE   ] Server-Sent Events push each log line as it arrives — no polling needed</div>
+        <div class="td">[ SAVE  ] Click "Save Session" to capture logs for replay + discussion</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-hdr">ATTACK ANALYSIS REPORT</div>
+    <div class="card-body">
+      <div id="mon-report" style="font-family:var(--fm);font-size:12px;color:var(--text3)">
+        Start monitoring and run some attacks — report appears here.
+      </div>
+    </div>
+  </div>`;
+}
+
+function monAddLine(raw) {
+  const logEl = document.getElementById('mon-log');
+  if (!logEl) return;
+  const hit  = detectAttack(raw);
+  const ts   = new Date().toTimeString().slice(0,8);
+  monitorStats.lines++;
+  if (hit) {
+    monitorStats.attacks++;
+    monitorStats.types[hit.type] = (monitorStats.types[hit.type]||0)+1;
+  }
+  if (/\b[45]\d{2}\b/.test(raw)) monitorStats.errors++;
+  sessionLog.push({ ts, raw, hit: hit?.type||null });
+
+  logEl.innerHTML += `<div><span class="td">[${ts}]</span> ${colourLogLine(raw)}</div>`;
+  if (logEl.children.length > 600) logEl.children[0].remove();
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // Update stats
+  const u = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  u('ms-lines', monitorStats.lines);
+  u('ms-atk',   monitorStats.attacks);
+  u('ms-err',   monitorStats.errors);
+
+  const bd = document.getElementById('ms-breakdown');
+  if (bd && Object.keys(monitorStats.types).length) {
+    bd.innerHTML = Object.entries(monitorStats.types)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([t,n])=>`<span style="color:var(--accent3)">${t}</span>: ${n}&nbsp; `)
+      .join('');
+  }
+}
+
+function monStart() {
+  const labId = document.getElementById('mon-target')?.value;
+  if (!labId) { alert('Deploy a lab first, then select it here.'); return; }
+  const src = document.getElementById('mon-src')?.value || 'sse';
+  monStop(); monClear();
+  monitorStartTime = Date.now();
+  monitorStats = { lines:0, attacks:0, errors:0, types:{} };
+  sessionLog = [];
+
+  const lab = ALL_LABS.find(l=>l.id===labId);
+  const badge = document.getElementById('mon-badge');
+  if (badge) { badge.textContent='LIVE'; badge.style.cssText='background:rgba(0,255,157,.15);color:var(--accent2);border:1px solid var(--accent2)'; }
+  document.getElementById('nb-live').style.display='';
+
+  const titleEl = document.getElementById('mon-term-title');
+  if (titleEl) titleEl.textContent = `docker logs -f  [${labId}] ${lab?.name||''} — attack detector active`;
+
+  const logEl = document.getElementById('mon-log');
+  if (logEl) logEl.innerHTML = `<div class="tg">[ STREAM STARTED ] Connecting to container logs for ${labId.toUpperCase()}…</div>`;
+
+  // Clock
+  monitorInterval = setInterval(() => {
+    const e = Date.now()-monitorStartTime;
+    const el = document.getElementById('ms-time');
+    if (el) el.textContent = `${String(Math.floor(e/60000)).padStart(2,'0')}:${String(Math.floor((e%60000)/1000)).padStart(2,'0')}`;
+  }, 1000);
+
+  if (src === 'sse') {
+    monitorSSE = new EventSource(`${API}/api/labs/${labId}/stream`);
+    monitorSSE.addEventListener('log', e => monAddLine(e.data));
+    monitorSSE.addEventListener('connected', e => {
+      const logEl = document.getElementById('mon-log');
+      if (logEl) logEl.innerHTML += `<div class="tg">[ CONNECTED ] ${e.data}</div>`;
+    });
+    monitorSSE.addEventListener('error', () => {
+      monAddLine('[SSE connection lost — switching to poll mode]');
+      monitorSSE.close(); monitorSSE = null;
+      startPollMode(labId);
+    });
+  } else {
+    startPollMode(labId);
+  }
+}
+
+function startPollMode(labId) {
+  const seen = new Set();
+  const poll = async () => {
+    try {
+      const r = await fetch(`${API}/api/labs/${labId}/logs?lines=40`);
+      const d = await r.json();
+      (d.logs||'').split('\n').filter(Boolean).forEach(line => {
+        if (!seen.has(line)) { seen.add(line); monAddLine(line); }
+      });
+    } catch {}
+  };
+  poll();
+  const t = setInterval(poll, 3000);
+  monitorSSE = { close: () => clearInterval(t) };
+}
+
+function monStop() {
+  if (monitorSSE) { monitorSSE.close(); monitorSSE = null; }
+  if (monitorInterval) { clearInterval(monitorInterval); monitorInterval = null; }
+  document.getElementById('nb-live').style.display = 'none';
+  const badge = document.getElementById('mon-badge');
+  if (badge) { badge.textContent='STOPPED'; badge.style.cssText='background:rgba(255,60,92,.15);color:var(--danger);border:1px solid var(--danger)'; }
+  genMonitorReport();
+}
+
+function monClear() {
+  const logEl = document.getElementById('mon-log');
+  if (logEl) logEl.innerHTML = '<div class="td">[ CLEARED ]</div>';
+  monitorStats = { lines:0, attacks:0, errors:0, types:{} };
+  sessionLog = [];
+  ['ms-lines','ms-atk','ms-err'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='0'; });
+  const bd = document.getElementById('ms-breakdown'); if(bd) bd.innerHTML='';
+  const rpt = document.getElementById('mon-report'); if(rpt) rpt.innerHTML='Start monitoring and run some attacks — report appears here.';
+}
+
+function monExport() {
+  const labId = document.getElementById('mon-target')?.value || 'unknown';
+  const log   = document.getElementById('mon-log')?.innerText||'';
+  const hdr   = `LabForge Attack Monitor Export\nLab: ${labId}\nTime: ${new Date().toISOString()}\nStats: ${monitorStats.lines} lines, ${monitorStats.attacks} attacks\n${'─'.repeat(60)}\n\n`;
+  dlFile(`monitor-${labId}-${Date.now()}.txt`, hdr+log, 'text/plain');
+}
+
+function saveSession() {
+  const labId = document.getElementById('mon-target')?.value;
+  if (!sessionLog.length) { alert('No log data to save. Start monitoring first.'); return; }
+  const name = prompt('Session name (for replay):') || `Session ${SESSIONS.length+1}`;
+  const lab  = ALL_LABS.find(l=>l.id===labId);
+  SESSIONS.push({ id: Date.now(), name, labId, labName: lab?.name||labId, time: new Date().toISOString(), lines: [...sessionLog], stats: {...monitorStats} });
+  updateSidebarStats();
+  alert(`Session "${name}" saved. View in Session Replay.`);
+}
+
+function genMonitorReport() {
+  const rpt = document.getElementById('mon-report');
+  if (!rpt) return;
+  const rate = monitorStats.lines>0 ? Math.round(monitorStats.attacks/monitorStats.lines*100) : 0;
+  rpt.innerHTML = `
+    <div class="tc" style="margin-bottom:6px">══ CAPTURE ANALYSIS ══</div>
+    <div>Lines: <span class="tc">${monitorStats.lines}</span> &nbsp; Attacks: <span class="tr">${monitorStats.attacks}</span> &nbsp; 4xx/5xx: <span class="ty">${monitorStats.errors}</span> &nbsp; Rate: <span class="tr">${rate}%</span></div>
+    ${Object.entries(monitorStats.types).length ? `
+    <div style="margin-top:8px" class="tc">Attack breakdown:</div>
+    ${Object.entries(monitorStats.types).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<div class="td">&nbsp;&nbsp;⚠ ${t}: <span class="ty">${n}</span></div>`).join('')}` : ''}
+    <div style="margin-top:6px" class="td">Session ended: ${new Date().toLocaleTimeString()}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SESSION REPLAY — teacher reviews attacks with students
+// ═══════════════════════════════════════════════════════════
+let replaySession = null;
+let replayPos     = 0;
+let replayTimer   = null;
+let replaySpeed   = 1;
+
+function renderReplay() {
+  return `
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-hdr">SAVED SESSIONS</div>
+      <div class="card-body" style="padding:6px;max-height:280px;overflow-y:auto">
+        ${SESSIONS.length === 0
+          ? `<div style="padding:20px;text-align:center;font-family:var(--fm);font-size:12px;color:var(--text3)">
+               No sessions saved yet.<br>Go to Attack Monitor → run a capture → click 💾 Save Session
+             </div>`
+          : SESSIONS.map((s,i) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="loadReplay(${i})">
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700">${s.name}</div>
+                <div style="font-family:var(--fm);font-size:10px;color:var(--text3)">${s.labName} · ${s.lines.length} lines · ${s.stats.attacks} attacks · ${new Date(s.time).toLocaleString()}</div>
+              </div>
+              <button class="btn btn-cyan btn-xs">Load</button>
+              <button class="btn btn-red btn-xs" onclick="event.stopPropagation();deleteSession(${i})">🗑</button>
+            </div>`).join('')
+        }
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">REPLAY CONTROLS</div>
+      <div class="card-body">
+        <div id="replay-session-info" style="font-family:var(--fm);font-size:12px;color:var(--text3);margin-bottom:14px">
+          No session loaded — click a saved session to load it
+        </div>
+        <div style="margin-bottom:14px">
+          <label class="form-label">TIMELINE</label>
+          <div class="replay-timeline" id="replay-tl" onclick="replaySeek(event)">
+            <div class="replay-fill" id="replay-fill" style="width:0%"></div>
+            <div class="replay-thumb" id="replay-thumb" style="left:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--text3);margin-top:4px">
+            <span id="replay-pos">0 / 0</span>
+            <span id="replay-atk-count">0 attacks</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn btn-ghost btn-sm" onclick="replayJumpStart()">⏮ Start</button>
+          <button class="btn btn-green btn-sm" id="replay-play-btn" onclick="replayPlay()">▶ Play</button>
+          <button class="btn btn-red btn-sm" onclick="replayPause()">⏸ Pause</button>
+          <button class="btn btn-ghost btn-sm" onclick="replayStepBack()">⏪ -1</button>
+          <button class="btn btn-ghost btn-sm" onclick="replayStepFwd()">+1 ⏩</button>
+          <button class="btn btn-ghost btn-sm" onclick="replayJumpEnd()">⏭ End</button>
+        </div>
+        <div>
+          <label class="form-label">SPEED: <span id="replay-speed-val">1×</span></label>
+          <input type="range" min="1" max="10" value="1" oninput="replaySpeed=+this.value;document.getElementById('replay-speed-val').textContent=this.value+'×'">
+        </div>
+        <div style="margin-top:12px">
+          <label class="form-label">ANNOTATION (teacher note for this moment)</label>
+          <div style="display:flex;gap:6px">
+            <input class="form-input" id="replay-note" placeholder="Add note at current position…" style="flex:1">
+            <button class="btn btn-gold btn-sm" onclick="addNote()">📌 Pin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      REPLAY LOG
+      <span id="replay-badge" style="font-family:var(--fm);font-size:10px;color:var(--text3)">no session loaded</span>
+    </div>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="tdot" style="background:#ff5f56"></div>
+        <div class="tdot" style="background:#ffbd2e"></div>
+        <div class="tdot" style="background:#27c93f"></div>
+        <div class="term-title" id="replay-term-title">labforge-replay — load a session to begin</div>
+      </div>
+      <div class="term-body" id="replay-log" style="min-height:340px;max-height:440px">
+        <div class="td">[ SESSION REPLAY ] Load a saved session from the left panel</div>
+        <div class="td">[ USE CASE ] Teacher + students review the attack together</div>
+        <div class="td">[ FEATURES ] Step forward/backward · speed control · add annotations · export</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function loadReplay(idx) {
+  replaySession = SESSIONS[idx];
+  replayPos = 0;
+  replayPause();
+  const info = document.getElementById('replay-session-info');
+  if (info) info.innerHTML = `<span class="tc">${replaySession.name}</span> · ${replaySession.labName} · ${replaySession.lines.length} log lines · ${replaySession.stats.attacks} attacks`;
+  const title = document.getElementById('replay-term-title');
+  if (title) title.textContent = `REPLAY: ${replaySession.name} — ${replaySession.labName}`;
+  const badge = document.getElementById('replay-badge');
+  if (badge) { badge.textContent = 'LOADED'; badge.style.color = 'var(--accent2)'; }
+  const logEl = document.getElementById('replay-log');
+  if (logEl) logEl.innerHTML = `<div class="tg">[ SESSION LOADED ] ${replaySession.name} — ${replaySession.lines.length} entries. Press ▶ Play or use step controls.</div>`;
+  replayUpdateTimeline();
+}
+
+function replayRenderLine(idx) {
+  const logEl = document.getElementById('replay-log');
+  if (!logEl || !replaySession) return;
+  const entry = replaySession.lines[idx];
+  if (!entry) return;
+  const note = entry.note ? `<span class="ty"> 📌 ${entry.note}</span>` : '';
+  logEl.innerHTML += `<div><span class="td">[${entry.ts}]</span> ${colourLogLine(entry.raw)}${note}</div>`;
+  if (logEl.children.length > 600) logEl.children[0].remove();
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function replayPlay() {
+  if (!replaySession) return;
+  replayPause();
+  replayTimer = setInterval(() => {
+    if (replayPos >= replaySession.lines.length) { replayPause(); return; }
+    replayRenderLine(replayPos);
+    replayPos++;
+    replayUpdateTimeline();
+  }, Math.max(30, 200 / replaySpeed));
+  const btn = document.getElementById('replay-play-btn');
+  if (btn) { btn.textContent='⏸ Playing…'; btn.className='btn btn-gold btn-sm'; }
+}
+
+function replayPause() {
+  if (replayTimer) { clearInterval(replayTimer); replayTimer = null; }
+  const btn = document.getElementById('replay-play-btn');
+  if (btn) { btn.textContent='▶ Play'; btn.className='btn btn-green btn-sm'; }
+}
+
+function replayStepFwd()   { if(!replaySession) return; replayPause(); replayRenderLine(replayPos); replayPos=Math.min(replayPos+1,replaySession.lines.length); replayUpdateTimeline(); }
+function replayStepBack()  { if(!replaySession) return; replayPause(); replayPos=Math.max(0,replayPos-1); const logEl=document.getElementById('replay-log'); if(logEl&&logEl.lastElementChild) logEl.lastElementChild.remove(); replayUpdateTimeline(); }
+function replayJumpStart() { if(!replaySession) return; replayPause(); replayPos=0; const logEl=document.getElementById('replay-log'); if(logEl) logEl.innerHTML=`<div class="tg">[ JUMPED TO START ]</div>`; replayUpdateTimeline(); }
+function replayJumpEnd()   { if(!replaySession) return; replayPause(); for(;replayPos<replaySession.lines.length;replayPos++) replayRenderLine(replayPos); replayUpdateTimeline(); }
+
+function replaySeek(e) {
+  if (!replaySession) return;
+  const tl = document.getElementById('replay-tl');
+  const pct = e.offsetX / tl.offsetWidth;
+  replayPos = Math.floor(pct * replaySession.lines.length);
+  const logEl = document.getElementById('replay-log');
+  if (logEl) { logEl.innerHTML=''; for (let i=0; i<replayPos; i++) replayRenderLine(i); }
+  replayUpdateTimeline();
+}
+
+function replayUpdateTimeline() {
+  if (!replaySession) return;
+  const pct = replaySession.lines.length > 0 ? (replayPos / replaySession.lines.length * 100) : 0;
+  const fill = document.getElementById('replay-fill'); if(fill) fill.style.width = pct+'%';
+  const thumb = document.getElementById('replay-thumb'); if(thumb) thumb.style.left = pct+'%';
+  const pos = document.getElementById('replay-pos'); if(pos) pos.textContent = `${replayPos} / ${replaySession.lines.length}`;
+  const atk = document.getElementById('replay-atk-count'); if(atk) atk.textContent = `${replaySession.stats.attacks} attacks`;
+}
+
+function addNote() {
+  if (!replaySession || replayPos===0) return;
+  const note = document.getElementById('replay-note')?.value?.trim();
+  if (!note) return;
+  const idx = Math.max(0, replayPos-1);
+  replaySession.lines[idx].note = note;
+  document.getElementById('replay-note').value='';
+  // Re-render last line with note
+  const logEl = document.getElementById('replay-log');
+  const last = logEl?.lastElementChild;
+  if (last) last.innerHTML += `<span class="ty"> 📌 ${note}</span>`;
+}
+
+function deleteSession(idx) {
+  if (!confirm('Delete this session?')) return;
+  SESSIONS.splice(idx,1);
+  updateSidebarStats();
+  nav('replay');
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI ADVISOR
+// ═══════════════════════════════════════════════════════════
+function renderAdvisor() {
+  const modes = ['Lab Creator','Attack Simulation','Scenario Designer','Target & Flag','Cheatsheet Gen','Attacker Advisor','Defender Advisor'];
+  return `
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-hdr">AI MODE</div>
+      <div class="card-body" style="padding:6px">
+        ${modes.map((m,i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)" onclick="setAIMode('${m}',this)">
+            <div class="toggle-track ${i===0?'on':''}" style="flex-shrink:0"><div class="toggle-thumb"></div></div>
+            <span style="font-size:13px">${m}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">SETTINGS</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">MODEL</label>
+          <select class="form-select" id="ai-model">
+            <option>qwen2.5:7b-instruct</option>
+            <option>llama3.1:8b</option>
+            <option>qwen2.5-coder:7b</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">LAB CONTEXT</label>
+          <select class="form-select" id="ai-lab-ctx">
+            <option value="">No specific lab</option>
+            ${ALL_LABS.map(l=>`<option value="${l.id}">${l.id}: ${l.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">TEMPERATURE: <span id="ai-temp-val">0.7</span></label>
+          <input type="range" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('ai-temp-val').textContent=this.value">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">AI ADVISOR CHAT <span style="font-family:var(--fm);font-size:10px;color:var(--accent2)" id="ai-mode-label">MODE: LAB CREATOR</span></div>
+    <div class="card-body">
+      <div class="chat-messages" id="chat-msgs">
+        <div class="chat-msg">
+          <div class="chat-av ai">🤖</div>
+          <div class="chat-bubble ai">
+            <strong style="color:var(--accent2)">LabForge AI</strong> — connected to Ollama via backend proxy<br><br>
+            I help teachers design labs and understand attacks from both sides:<br>
+            • <b>Lab Creator</b> — design realistic vulnerable scenarios<br>
+            • <b>Attack Simulation</b> — step-by-step exploitation for a selected lab<br>
+            • <b>Cheatsheet Gen</b> — auto-generate student cheatsheets<br>
+            • <b>Attacker / Defender Advisor</b> — both sides of the coin<br><br>
+            Select a mode and ask me anything.
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input class="form-input" id="chat-input" placeholder="Ask about lab design, attack scenarios, tools…" onkeydown="if(event.key==='Enter')sendChat()" style="flex:1">
+        <button class="btn btn-cyan" onclick="sendChat()">Send ▶</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+let aiMode = 'Lab Creator';
+function setAIMode(mode, el) {
+  aiMode = mode;
+  document.querySelectorAll('#content .toggle-track').forEach(t => t.classList.remove('on'));
+  el.querySelector('.toggle-track').classList.add('on');
+  const lbl = document.getElementById('ai-mode-label');
+  if (lbl) lbl.textContent = 'MODE: '+mode.toUpperCase();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg   = input?.value?.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const msgs = document.getElementById('chat-msgs');
+  msgs.innerHTML += `<div class="chat-msg"><div class="chat-av user">👤</div><div class="chat-bubble">${msg}</div></div>`;
+  const tid = 'thinking-'+Date.now();
+  msgs.innerHTML += `<div class="chat-msg" id="${tid}"><div class="chat-av ai">🤖</div><div class="chat-bubble ai" style="color:var(--text3)"><em>Thinking…</em></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const labId  = document.getElementById('ai-lab-ctx')?.value;
+  const lab    = labId ? ALL_LABS.find(l=>l.id===labId) : null;
+  const model  = document.getElementById('ai-model')?.value || 'qwen2.5:7b-instruct';
+
+  const system = `You are LabForge AI — an expert pentesting educator embedded in a Docker-based pentest teaching platform.
+
+Current mode: ${aiMode}
+${lab ? `Current lab: ${lab.name} — ${lab.vuln}\nScenario: ${lab.desc}` : ''}
+
+Platform context: LabForge is used by teachers to deploy Docker-based vulnerable server labs for pentest students.
+Teachers use you to: design new lab scenarios, generate cheatsheets, understand both attack and defense perspectives.
+Students attack the running Docker containers — they never talk to you directly.
+
+Be educational, specific, and practical. Format code in markdown code blocks.
+Only provide guidance for authorized use in isolated lab environments.`;
+
+  llmHistory.push({ role:'user', content:msg });
+  try {
+    const r = await fetch(`${API}/api/ollama/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model, stream:false, messages:[{role:'system',content:system},...llmHistory.slice(-6)] })
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    const reply = d.message?.content || 'No response';
+    llmHistory.push({ role:'assistant', content:reply });
+    document.getElementById(tid).querySelector('.chat-bubble').innerHTML =
+      `<strong style="color:var(--accent2)">LabForge AI</strong> <span style="font-size:10px;color:var(--text3);font-family:var(--fm)">[${model}]</span><br><br>` +
+      reply
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<div class="terminal" style="margin:6px 0"><div class="term-body" style="min-height:auto;white-space:pre;color:var(--accent2)">$2</div></div>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\n/g,'<br>');
+  } catch(e) {
+    document.getElementById(tid).querySelector('.chat-bubble').innerHTML =
+      `<strong style="color:var(--danger)">Error</strong><br>${e.message}<br><br>
+      Check: <code>ollama serve</code> running · <a href="/api/ollama/models" target="_blank" style="color:var(--accent)">/api/ollama/models</a>`;
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════
+// LLM MANAGER
+// ═══════════════════════════════════════════════════════════
+function renderModels() {
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-family:var(--fm);font-size:11px;color:var(--text3)">
+      OLLAMA: <span style="color:var(--accent)">host.docker.internal:11434</span>
+      &nbsp;·&nbsp;<a href="/api/ollama/models" target="_blank" style="color:var(--text3)">status</a>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-cyan btn-sm" onclick="loadModels()">🔄 Refresh</button>
+      <button class="btn btn-green btn-sm" onclick="pullPrompt()">⬇ Pull Model</button>
+    </div>
+  </div>
+  <div class="stack" id="models-list">
+    <div style="font-family:var(--fm);font-size:12px;color:var(--text3);text-align:center;padding:30px">Loading models from Ollama…</div>
+  </div>`;
+}
+
+async function loadModels() {
+  const el = document.getElementById('models-list');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/api/ollama/models`);
+    const d = await r.json();
+    if (!d.available || !d.models?.length) {
+      el.innerHTML = `<div class="card"><div class="card-body"><p style="color:var(--warn);font-family:var(--fm)">Ollama not reachable. Run <code>ollama serve</code> on host.</p></div></div>`;
+      return;
+    }
+    el.innerHTML = d.models.map(m => `
+      <div style="display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-size:24px;width:44px;height:44px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center">🧠</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${m.name}</div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--text3)">${(m.size/1e9).toFixed(1)}GB · modified ${m.modified_at?new Date(m.modified_at).toLocaleDateString():'—'}</div>
+        </div>
+        <span class="badge bg-green">AVAILABLE</span>
+        <button class="btn btn-ghost btn-sm" onclick="setDefault('${m.name}')">Set Default</button>
+        <button class="btn btn-red btn-sm" onclick="delModel('${m.name}')">🗑</button>
+      </div>`).join('');
+    // Update model selects
+    document.querySelectorAll('#ai-model,#llm-model-select').forEach(sel => {
+      if (sel) sel.innerHTML = d.models.map(m=>`<option value="${m.name}">${m.name} (${(m.size/1e9).toFixed(1)}GB)</option>`).join('');
+    });
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--danger);font-family:var(--fm);padding:16px">${e.message}</div>`;
+  }
+}
+
+function pullPrompt() { const n=prompt('Model name (e.g. mistral:7b):'); if(n?.trim()) alert(`Run:\n\nollama pull ${n.trim()}`); }
+function setDefault(n) { localStorage.setItem('lf_model',n); showToast(`Default: ${n}`); }
+async function delModel(n) {
+  if (!confirm(`Delete ${n}?`)) return;
+  try { await fetch(`${API}/api/ollama/models`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n})}); loadModels(); } catch { alert(`Run:\n\nollama rm ${n}`); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHEATSHEETS
+// ═══════════════════════════════════════════════════════════
+function renderCheatsheets() {
+  return `
+  <div class="labs-grid">
+    ${ALL_LABS.map(l => {
+      const tier = l.id.startsWith('C') ? 'chain' : l.id==='21' ? 'hardened' : 'beginner';
+      return `
+      <div class="lab-card lc-${tier}" onclick="openCheatsheet('${l.id}')">
+        <div class="lc-top"><span class="lc-id">${l.id}</span>${diffBadge(tier==='chain'?'chain':tier==='hardened'?'hardened':'beginner')}</div>
+        <div class="lc-name">${l.name}</div>
+        <div class="lc-vuln">${l.vuln}</div>
+        <div class="lc-tags" style="margin-top:8px">${l.tags.map(t=>`<span class="badge bg-cyan">${t}</span>`).join('')}</div>
+        <div class="lc-actions" style="margin-top:8px" onclick="event.stopPropagation()">
+          <button class="btn btn-cyan btn-xs" onclick="openCheatsheet('${l.id}')">📋 View</button>
+          <button class="btn btn-ghost btn-xs" onclick="genAICheatsheet('${l.id}')">🤖 AI Gen</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DOWNLOADS
+// ═══════════════════════════════════════════════════════════
+function renderDownloads() {
+  const LINKS = [
+    {icon:'🔴',title:'OWASP Testing Guide v4.2',    desc:'Official web security testing checklist',             url:'https://owasp.org/www-project-web-security-testing-guide/', cat:'OWASP'},
+    {icon:'🟡',title:'OWASP Top 10 2021',             desc:'Most critical web application risks',                  url:'https://owasp.org/www-project-top-ten/', cat:'OWASP'},
+    {icon:'🟢',title:'PTES — Pentest Execution Std', desc:'Standard pentest methodology framework',               url:'http://www.pentest-standard.org/', cat:'Methodology'},
+    {icon:'🔵',title:'NIST SP 800-115',               desc:'Technical guide for information security testing',     url:'https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-115.pdf', cat:'Methodology'},
+    {icon:'⚡',title:'HackTricks',                   desc:'Comprehensive pentest cheatsheet reference',           url:'https://book.hacktricks.xyz/', cat:'Cheatsheets'},
+    {icon:'🎯',title:'PayloadsAllTheThings',          desc:'Payload lists for all web vulnerabilities',            url:'https://github.com/swisskyrepo/PayloadsAllTheThings', cat:'Cheatsheets'},
+    {icon:'🐧',title:'GTFOBins',                     desc:'Unix binaries for priv-esc and bypass',                url:'https://gtfobins.github.io/', cat:'PrivEsc'},
+    {icon:'🏆',title:'SecLists (Daniel Miessler)',   desc:'Wordlists for fuzzing, bruteforce, discovery',         url:'https://github.com/danielmiessler/SecLists', cat:'Wordlists'},
+    {icon:'🔐',title:'Exploit-DB',                   desc:'Public exploit archive and CVE database',              url:'https://www.exploit-db.com/', cat:'Exploits'},
+    {icon:'🗺️',title:'MITRE ATT&CK',               desc:'Adversary tactics, techniques and procedures',          url:'https://attack.mitre.org/', cat:'Framework'},
+    {icon:'📘',title:'Kali Linux Tools',             desc:'Official documentation for the full Kali tool suite',  url:'https://www.kali.org/tools/', cat:'Tools'},
+    {icon:'🌐',title:'PortSwigger Web Academy',      desc:'Free hands-on web security training (Burp Labs)',      url:'https://portswigger.net/web-security', cat:'Training'},
+  ];
+  const cats = [...new Set(LINKS.map(l=>l.cat))];
+  return cats.map(cat => `
+    <div class="sec-hdr" style="margin-top:${cat==='OWASP'?'0':'20px'}">
+      <div class="sec-title" style="color:var(--accent2)">${cat}</div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="card" style="margin-bottom:4px">
+      <div class="card-body" style="padding:4px 12px">
+        ${LINKS.filter(l=>l.cat===cat).map(l=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+            <div style="font-size:18px">${l.icon}</div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700">${l.title}</div>
+              <div style="font-size:11px;color:var(--text3)">${l.desc}</div>
+            </div>
+            <a href="${l.url}" target="_blank" class="btn btn-cyan btn-xs">🔗 Open</a>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// LAB DETAIL MODAL
+// ═══════════════════════════════════════════════════════════
+function openLabModal(id) {
+  const lab  = ALL_LABS.find(l=>l.id===id);
+  if (!lab) return;
+  const s    = labStates[id] || 'stopped';
+  const tier = id.startsWith('C') ? 'chain' : id==='21' ? 'hardened' : 'beginner';
+
+  document.getElementById('lm-title').textContent = `LAB ${id} — ${lab.name.toUpperCase()}`;
+  document.getElementById('lm-body').innerHTML = `
+    <div style="background:var(--bg3);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 4px 4px 0;margin-bottom:14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);margin-bottom:4px">VULNERABILITY</div>
+      <div style="font-size:15px;font-weight:700;color:var(--accent)">${lab.vuln}</div>
+    </div>
+    <div class="grid-2" style="gap:12px;margin-bottom:14px">
+      <div><span class="form-label">STATUS</span><br>
+        <span class="sind sind-${s}" style="vertical-align:middle"></span>
+        <span style="font-family:var(--fm);font-size:12px;margin-left:6px">${s.toUpperCase()}</span>
+      </div>
+      <div><span class="form-label">PORT</span><br>
+        <code>localhost:${lab.port}</code>
+        ${s==='running'?` <a href="http://localhost:${lab.port}" target="_blank" style="color:var(--accent);font-family:var(--fm);font-size:11px">→ open</a>`:''}
+      </div>
+      ${lab.db?`<div><span class="form-label">DATABASE</span><br><span class="badge bg-cyan">${lab.db}</span></div>`:''}
+      <div><span class="form-label">DIFFICULTY</span><br>${diffBadge(tier)}</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <span class="form-label">SCENARIO</span>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:4px">${lab.desc}</div>
+    </div>
+    ${lab.stages ? `
+    <div style="margin-bottom:14px">
+      <span class="form-label">ATTACK STAGES</span>
+      ${lab.stages.map((s,i)=>`<div style="display:flex;gap:8px;margin-top:6px;font-size:13px"><span style="font-family:var(--fm);color:var(--text3);flex-shrink:0">Stage ${i+1}:</span><span style="color:var(--text)">${s}</span></div>`).join('')}
+    </div>` : ''}
+    ${lab.flag ? `<div style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.2);border-radius:4px;padding:10px 14px;font-family:var(--fm);font-size:12px;color:var(--accent4)">🎯 ${lab.flag}</div>` : ''}
+    <div style="margin-top:14px">
+      <span class="form-label">ALLOWED TOOLS</span>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+        ${(lab.tools||[]).map(t=>`<span class="badge bg-cyan">${t}</span>`).join('') || '<span style="font-family:var(--fm);font-size:11px;color:var(--text3)">Any tools allowed</span>'}
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <span class="form-label">DEPLOY COMMAND</span>
+      <div class="terminal" style="margin-top:4px"><div class="term-body" style="min-height:auto">
+        <span class="td">$</span> <span style="color:#fff">cd labs/${id.startsWith('C')?'chain/c'+id.slice(1).toLowerCase():id+'-'+lab.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}</span><br>
+        <span class="td">$</span> <span style="color:#fff">docker compose up -d</span>
+      </div></div>
+    </div>`;
+
+  document.getElementById('lm-footer').innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="closeModal('labModal')">Close</button>
+    <button class="btn btn-cyan btn-sm" onclick="closeModal('labModal');openCheatsheet('${id}')">📋 Cheatsheet</button>
+    ${s==='running'
+      ? `<button class="btn btn-red btn-sm" onclick="stopLab('${id}');closeModal('labModal')">⬛ Stop</button>
+         <button class="btn btn-cyan btn-sm" onclick="closeModal('labModal');quickMonitor('${id}')">👁 Monitor</button>`
+      : `<button class="btn btn-green btn-sm" onclick="startLab('${id}');closeModal('labModal')">▶ Deploy</button>`
+    }`;
+  document.getElementById('labModal').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHEATSHEET MODAL
+// ═══════════════════════════════════════════════════════════
+function openCheatsheet(id) {
+  const lab = ALL_LABS.find(l=>l.id===id);
+  if (!lab) return;
+  document.getElementById('cs-title').textContent = `CHEATSHEET — ${lab.name.toUpperCase()}`;
+
+  const tools = (lab.tools||ALL_TOOLS.slice(0,5).map(t=>t.name));
+  const toolRows = tools.map(name => {
+    const t = ALL_TOOLS.find(x=>x.name===name);
+    return `| \`${name}\` | ${t?.desc||''} | \`${t?.install||'apt install '+name}\` |`;
+  }).join('\n');
+
+  document.getElementById('cs-body').innerHTML = `
+    <div style="background:rgba(0,212,255,.05);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 4px 4px 0;margin-bottom:14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);margin-bottom:3px">SCENARIO</div>
+      <div style="font-size:13px;line-height:1.6">${lab.desc}</div>
+    </div>
+
+    ${lab.stages ? `
+    <div style="margin-bottom:14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">ATTACK STAGES</div>
+      ${lab.stages.map((s,i)=>`
+        <div style="display:flex;gap:10px;margin-bottom:6px;padding:8px;background:var(--bg3);border-radius:4px">
+          <div style="font-family:var(--fm);font-size:11px;color:var(--accent4);flex-shrink:0">STAGE ${i+1}</div>
+          <div style="font-size:13px">${s}</div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div style="margin-bottom:14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">ALLOWED TOOLS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="font-family:var(--fm);font-size:9px;color:var(--text3)">
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)">TOOL</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)">PURPOSE</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)">INSTALL</th>
+        </tr></thead>
+        <tbody>
+          ${tools.map(name => {
+            const t = ALL_TOOLS.find(x=>x.name===name);
+            return `<tr style="border-bottom:1px solid rgba(255,255,255,.03)">
+              <td style="padding:7px 10px"><code>${name}</code></td>
+              <td style="padding:7px 10px;color:var(--text2)">${t?.desc||''}</td>
+              <td style="padding:7px 10px"><code>${t?.install||'apt install '+name}</code></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">QUICK COMMANDS</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px 14px;font-family:var(--fm);font-size:12px;line-height:2;color:var(--accent2)">
+        <div><span class="td"># 1. Start the lab</span></div>
+        <div>cd labs/${id.toLowerCase()} && docker compose up -d</div>
+        <div><span class="td"># 2. Check it's running</span></div>
+        <div>curl http://localhost:${lab.port}/</div>
+        <div><span class="td"># 3. Begin recon</span></div>
+        ${lab.vuln.includes('SQL') ? `<div>sqlmap -u "http://localhost:${lab.port}/api/search?q=test" --batch --dbs</div>` : ''}
+        ${lab.vuln.includes('IDOR') ? `<div>for i in $(seq 1 20); do curl -s http://localhost:${lab.port}/api/users/$i | python3 -m json.tool; done</div>` : ''}
+        ${lab.vuln.includes('JWT')  ? `<div>jwt_tool TOKEN -X a  # try alg:none</div>` : ''}
+        ${lab.vuln.includes('SSRF') ? `<div>curl -X POST http://localhost:${lab.port}/api/webhook -d '{"url":"http://169.254.169.254/latest/meta-data/"}'</div>` : ''}
+      </div>
+    </div>
+
+    ${lab.flag ? `
+    <div style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.25);border-radius:4px;padding:10px 14px">
+      <div style="font-family:var(--fm);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">TARGET RESULT</div>
+      <div style="font-size:13px;color:var(--accent4)">${lab.flag}</div>
+    </div>` : ''}`;
+
+  document.getElementById('csModal').classList.add('show');
+}
+
+function downloadCheatsheet() {
+  const title = document.getElementById('cs-title').textContent.replace('CHEATSHEET — ','');
+  const body  = document.getElementById('cs-body').innerText;
+  dlFile(`cheatsheet-${title.toLowerCase().replace(/\s+/g,'-')}.md`, `# Cheatsheet: ${title}\n\n${body}`, 'text/markdown');
+}
+
+function genAICheatsheet(id) {
+  const lab = ALL_LABS.find(l=>l.id===id);
+  closeModal('csModal');
+  nav('advisor');
+  setTimeout(() => {
+    const input = document.getElementById('chat-input');
+    if (input && lab) input.value = `Generate a complete student cheatsheet for "${lab.name}" (${lab.vuln}). Include: scenario, attack stages, tool commands with examples, and the target result.`;
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LAB CONTROL — API wired
+// ═══════════════════════════════════════════════════════════
+async function startLab(id) {
+  labStates[id] = 'starting';
+  refreshLabCard(id);
+  try {
+    const r = await fetch(`${API}/api/labs/${id}/start`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:'docker'}) });
+    const d = await r.json();
+    labStates[id] = d.success ? 'running' : 'stopped';
+  } catch { labStates[id] = 'stopped'; }
+  refreshLabCard(id);
+  updateSidebarStats();
+}
+
+async function stopLab(id) {
+  labStates[id] = 'stopping';
+  refreshLabCard(id);
+  try {
+    await fetch(`${API}/api/labs/${id}/stop`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:'docker'}) });
+  } catch {}
+  await syncStatus(false);
+  refreshLabCard(id);
+  updateSidebarStats();
+}
+
+async function syncStatus(silent=false) {
+  try {
+    const r = await fetch(`${API}/api/labs/status`);
+    const d = await r.json();
+    let changed = false;
+    for (const [id, s] of Object.entries(d)) {
+      if (labStates[id] !== s) { labStates[id] = s; changed = true; }
+    }
+    if (changed && !silent) { refreshCurrentPage(); }
+    updateSidebarStats();
+    const pill = document.getElementById('pill-docker');
+    if (pill) { const n=Object.values(labStates).filter(s=>s==='running').length; pill.textContent=`🐳 ${n>0?n+' running':'Docker'}`; pill.className=`pill ${n>0?'ok':''}`; }
+  } catch {
+    const pill = document.getElementById('pill-docker');
+    if (pill) { pill.textContent='🐳 offline'; pill.className='pill err'; }
+  }
+}
+
+function refreshCurrentPage() { nav(currentPage); }
+
+function refreshLabCard(id) {
+  // Refresh just this card without full re-render
+  const el = document.getElementById('lc-'+id);
+  const tr = document.getElementById('tr-'+id);
+  const s  = labStates[id] || 'stopped';
+  if (el) { const newHtml = labCard(ALL_LABS.find(l=>l.id===id), id.startsWith('C')?'chain':id==='21'?'hardened':'beginner'); const temp=document.createElement('div'); temp.innerHTML=newHtml; const newCard=temp.firstElementChild; el.replaceWith(newCard); }
+  if (tr) { const sind=tr.querySelector('.sind'); if(sind){sind.className=`sind sind-${s}`;} }
+}
+
+function deploySelected() { const id=document.getElementById('deploy-select')?.value; if(id) startLab(id); }
+async function deployAllBeginner() { for (const l of BEGINNER_LABS) { if ((labStates[l.id]||'stopped') !== 'running') await startLab(l.id); } }
+function stopAllLabs() { ALL_LABS.filter(l=>labStates[l.id]==='running').forEach(l=>stopLab(l.id)); }
+function quickMonitor(id) { nav('monitor'); setTimeout(()=>{ const sel=document.getElementById('mon-target'); if(sel) for(const o of sel.options) if(o.value===id){o.selected=true;break;} }, 80); }
+
+// ═══════════════════════════════════════════════════════════
+// LAB BUILDER HELPERS
+// ═══════════════════════════════════════════════════════════
+function builderTab(name, el) {
+  document.querySelectorAll('#content .tab').forEach(t=>t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  ['scenario','tools','readme','compose','cheatsheet'].forEach(n => {
+    const p = document.getElementById('bt-'+n);
+    if (p) p.style.display = n===name?'block':'none';
+  });
+}
+
+function toggleTool(name, el) {
+  if (selectedTools.has(name)) selectedTools.delete(name);
+  else selectedTools.add(name);
+  el.classList.toggle('sel', selectedTools.has(name));
+  el.querySelector('.tool-cb').textContent = selectedTools.has(name) ? '✓' : '';
+}
+
+function cloneLab() {
+  const id  = document.getElementById('b-clone')?.value;
+  const lab = id ? ALL_LABS.find(l=>l.id===id) : null;
+  if (!lab) return;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val; };
+  set('b-name',  lab.name+' (Clone)');
+  set('b-desc',  lab.desc);
+  set('b-flag',  lab.flag||'');
+  if (lab.stages) set('b-stages', lab.stages.join('\n'));
+  lab.tools?.forEach(t => { if (!selectedTools.has(t)) { selectedTools.add(t); } });
+}
+
+function genReadme() {
+  const name   = document.getElementById('b-name')?.value || 'Custom Lab';
+  const vuln   = document.getElementById('b-vuln')?.value || 'SQL Injection';
+  const diff   = document.getElementById('b-diff')?.value || 'beginner';
+  const stack  = document.getElementById('b-stack')?.value || 'Node.js + Express';
+  const db     = document.getElementById('b-db')?.value || 'PostgreSQL';
+  const port   = document.getElementById('b-port')?.value || '9010';
+  const desc   = document.getElementById('b-desc')?.value || 'Vulnerable application for training.';
+  const stages = (document.getElementById('b-stages')?.value||'').split('\n').filter(Boolean);
+  const flag   = document.getElementById('b-flag')?.value || 'FLAG{your_flag_here}';
+  const tools  = [...selectedTools];
+
+  const md = `# Lab — ${name}
+
+**Port:** \`${port}\`  **Stack:** ${stack} + ${db}  **Difficulty:** ${diff}
+
+---
+
+## 🎯 Scenario
+${desc}
+
+---
+
+## 📋 Attack Stages
+${stages.map((s,i)=>`${i+1}. ${s}`).join('\n') || '1. Reconnaissance\n2. Exploitation\n3. Data extraction'}
+
+---
+
+## 🛠️ Allowed Tools
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+${tools.map(t => { const info=ALL_TOOLS.find(x=>x.name===t); return `| \`${t}\` | ${info?.desc||''} | \`${info?.install||'apt install '+t}\` |`; }).join('\n')}
+
+---
+
+## 🚀 Getting Started
+
+\`\`\`bash
+docker compose up -d
+curl http://localhost:${port}/
+\`\`\`
+
+## 🎯 Target
+${flag}
+
+---
+
+> ⚠️ Educational use only. Run in isolated Docker environment.
+`;
+  const out = document.getElementById('b-readme-out');
+  if (out) out.value = md;
+}
+
+function genCompose() {
+  const name  = (document.getElementById('b-name')?.value||'custom-lab').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const db    = document.getElementById('b-db')?.value || 'PostgreSQL';
+  const port  = document.getElementById('b-port')?.value || '9010';
+  let dbSvc = '', dbEnv = '';
+  if (db==='PostgreSQL') { dbSvc=`\n  db:\n    image: postgres:15-alpine\n    environment:\n      POSTGRES_DB: labdb\n      POSTGRES_USER: admin\n      POSTGRES_PASSWORD: admin123\n    volumes:\n      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql\n    networks: [lab-net]`; dbEnv=`      DB_HOST: db\n      DB_USER: admin\n      DB_PASS: admin123\n      DB_NAME: labdb`; }
+  else if (db==='MySQL') { dbSvc=`\n  db:\n    image: mysql:8.0\n    environment:\n      MYSQL_DATABASE: labdb\n      MYSQL_USER: admin\n      MYSQL_PASSWORD: admin123\n      MYSQL_ROOT_PASSWORD: root\n    networks: [lab-net]`; dbEnv=`      DB_HOST: db\n      DB_USER: admin\n      DB_PASS: admin123\n      DB_NAME: labdb`; }
+  const yml = `version: "3.9"\nservices:${dbSvc}\n  api:\n    build: ./src\n    ports: ["${port}:3000"]\n    environment:\n${dbEnv||'      NODE_ENV: development'}\n    depends_on: ${db!=='None'?'[db]':'[]'}\n    networks: [lab-net]\nnetworks:\n  lab-net:\n    driver: bridge\n`;
+  const out = document.getElementById('b-compose-out');
+  if (out) out.value = yml;
+}
+
+function genCheatsheet() {
+  const name   = document.getElementById('b-name')?.value || 'Custom Lab';
+  const vuln   = document.getElementById('b-vuln')?.value || 'SQL Injection';
+  const port   = document.getElementById('b-port')?.value || '9010';
+  const desc   = document.getElementById('b-desc')?.value || '';
+  const stages = (document.getElementById('b-stages')?.value||'').split('\n').filter(Boolean);
+  const flag   = document.getElementById('b-flag')?.value || 'FLAG{...}';
+  const tools  = [...selectedTools];
+
+  const md = `# Cheatsheet — ${name}
+
+## 🎯 Scenario
+${desc}
+
+## 📋 Attack Stages
+${stages.map((s,i)=>`### Stage ${i+1}\n${s}`).join('\n\n') || '### Stage 1\nBegin with recon'}
+
+## 🛠️ Allowed Tools
+| Tool | Purpose | Install |
+|------|---------|---------|
+${tools.map(t => { const info=ALL_TOOLS.find(x=>x.name===t); return `| \`${t}\` | ${info?.desc||''} | \`${info?.install||'apt install '+t}\` |`; }).join('\n')}
+
+## ⚡ Quick Commands
+\`\`\`bash
+# Start lab
+docker compose up -d
+
+# Basic test
+curl http://localhost:${port}/
+
+# Recon
+curl http://localhost:${port}/ | python3 -m json.tool
+\`\`\`
+
+## 🎯 Target Result
+${flag}
+
+## 🛡️ Defense Reference
+- Never trust user input — use parameterized queries / input validation
+- Apply principle of least privilege
+- Enable proper error handling (generic messages to users)
+- Review the 21-hardened lab for correct implementation examples
+`;
+  const out = document.getElementById('b-cs-out');
+  if (out) out.value = md;
+}
+
+function saveLabToList() {
+  showToast('Lab saved! In production this would persist to the backend.');
+}
+
+async function genWithAI() {
+  const name = document.getElementById('b-name')?.value;
+  const vuln = document.getElementById('b-vuln')?.value;
+  if (!name) { alert('Fill in the lab name first.'); return; }
+  nav('advisor');
+  setTimeout(() => {
+    const input = document.getElementById('chat-input');
+    if (input) input.value = `Improve and expand this lab cheatsheet for "${name}" (${vuln}). Add specific attack commands, tool flags, and defender notes.`;
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function dlFile(name, content, type) {
+  const a  = document.createElement('a');
+  a.href   = URL.createObjectURL(new Blob([content],{type}));
+  a.download = name;
+  a.click();
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--accent2);color:var(--accent2);font-family:var(--fm);font-size:12px;padding:10px 16px;border-radius:4px;z-index:9998;animation:fadeIn .2s';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2500);
+}
+
+function updateSidebarStats() {
+  const running = ALL_LABS.filter(l=>labStates[l.id]==='running').length;
+  const sfr = document.getElementById('sf-running');
+  const nbr = document.getElementById('nb-running');
+  if (sfr) sfr.textContent = `${running} lab${running!==1?'s':''} running`;
+  if (nbr) nbr.textContent = running;
+  if (running > 0) { if(nbr){nbr.className='nbadge nbadge-green';} } else { if(nbr){nbr.className='nbadge nbadge-cyan';nbr.textContent='0';} }
+  const sfd = document.getElementById('sf-docker');
+  if (sfd) sfd.textContent = 'Docker: online';
+  const nbt = document.getElementById('nb-total');
+  if (nbt) nbt.textContent = ALL_LABS.length;
+  const nbs = document.getElementById('nb-sessions');
+  if (nbs) nbs.textContent = SESSIONS.length;
+}
+
+// Clock
+setInterval(() => {
+  const el = document.getElementById('pill-clock');
+  if (el) el.textContent = '🕐 '+new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+(async () => {
+  nav('dashboard');
+  await syncStatus(false);
+  // Check Ollama
+  try {
+    const r = await fetch(`${API}/api/ollama/models`);
+    const d = await r.json();
+    const pill = document.getElementById('pill-ollama');
+    if (pill) { pill.textContent = d.available ? `🤖 Ollama: ${d.models?.length||0} models` : '🤖 Ollama: offline'; pill.className = `pill ${d.available?'ok':'warn'}`; }
+    const sfd = document.getElementById('sf-docker');
+    if (sfd) sfd.textContent = 'Docker: online';
+  } catch {
+    const pill = document.getElementById('pill-ollama');
+    if (pill) { pill.textContent = '🤖 Ollama: offline'; pill.className = 'pill warn'; }
+  }
+})();
+</script>
+</body>
+</html>

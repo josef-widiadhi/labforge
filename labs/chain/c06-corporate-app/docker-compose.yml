@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment: {POSTGRES_DB: c06db, POSTGRES_USER: c06user, POSTGRES_PASSWORD: c06pass}
+    volumes: ["./src/init.sql:/docker-entrypoint-initdb.d/init.sql"]
+    networks: [c06]
+  api:
+    build: ./src
+    ports: ["9006:3000"]
+    environment: {DB_HOST: db, DB_USER: c06user, DB_PASS: c06pass, DB_NAME: c06db}
+    depends_on: [db]
+    networks: [c06]
+networks:
+  c06:
+    driver: bridge

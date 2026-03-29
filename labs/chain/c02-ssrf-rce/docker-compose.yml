@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  app:
+    build: ./src
+    ports: ["9002:3000"]
+    networks: [c02]
+networks:
+  c02:
+    driver: bridge

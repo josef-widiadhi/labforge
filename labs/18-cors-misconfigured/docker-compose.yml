@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: corsdb
+      POSTGRES_USER: corsuser
+      POSTGRES_PASSWORD: corspass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab18]
+  api:
+    build: ./src
+    ports: ["8018:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: corsuser
+      DB_PASS: corspass
+      DB_NAME: corsdb
+    depends_on: [db]
+    networks: [lab18]
+networks:
+  lab18:
+    driver: bridge

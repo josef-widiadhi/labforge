@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: xmldb
+      POSTGRES_USER: xmluser
+      POSTGRES_PASSWORD: xmlpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab11]
+  api:
+    build: ./src
+    ports: ["8011:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: xmluser
+      DB_PASS: xmlpass
+      DB_NAME: xmldb
+    depends_on: [db]
+    networks: [lab11]
+networks:
+  lab11:
+    driver: bridge

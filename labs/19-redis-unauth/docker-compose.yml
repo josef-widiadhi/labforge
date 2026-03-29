@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6399:6379"]
+    command: redis-server --loglevel warning
+    networks: [lab19]
+  api:
+    build: ./src
+    ports: ["8019:3000"]
+    environment:
+      REDIS_HOST: redis
+    depends_on: [redis]
+    networks: [lab19]
+networks:
+  lab19:
+    driver: bridge

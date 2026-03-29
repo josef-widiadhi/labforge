@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lab01
+
+  api:
+    build: ./src
+    ports:
+      - "8001:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASS: admin123
+      DB_NAME: userdb
+    depends_on:
+      - db
+    networks:
+      - lab01
+
+networks:
+  lab01:
+    driver: bridge

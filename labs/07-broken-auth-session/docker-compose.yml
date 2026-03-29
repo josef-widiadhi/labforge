@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    networks: [lab07]
+  api:
+    build: ./src
+    ports: ["8007:3000"]
+    environment:
+      REDIS_HOST: redis
+    depends_on: [redis]
+    networks: [lab07]
+networks:
+  lab07:
+    driver: bridge

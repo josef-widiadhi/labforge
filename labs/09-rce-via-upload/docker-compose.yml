@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uploaddb
+      MYSQL_USER: uploader
+      MYSQL_PASSWORD: uploadpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab09]
+  api:
+    build: ./src
+    ports: ["8009:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: uploader
+      DB_PASS: uploadpass
+      DB_NAME: uploaddb
+    depends_on: [db]
+    networks: [lab09]
+networks:
+  lab09:
+    driver: bridge

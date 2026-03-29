@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: swaggerdb
+      MYSQL_USER: swaggeruser
+      MYSQL_PASSWORD: swaggerpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab16]
+  api:
+    build: ./src
+    ports: ["8016:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: swaggeruser
+      DB_PASS: swaggerpass
+      DB_NAME: swaggerdb
+    depends_on: [db]
+    networks: [lab16]
+networks:
+  lab16:
+    driver: bridge

@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: massdb
+      MYSQL_USER: massuser
+      MYSQL_PASSWORD: masspass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab14]
+  api:
+    build: ./src
+    ports: ["8014:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: massuser
+      DB_PASS: masspass
+      DB_NAME: massdb
+    depends_on: [db]
+    networks: [lab14]
+networks:
+  lab14:
+    driver: bridge

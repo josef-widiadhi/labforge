@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ratedb
+      POSTGRES_USER: rateuser
+      POSTGRES_PASSWORD: ratepass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab15]
+  redis:
+    image: redis:7-alpine
+    networks: [lab15]
+  api:
+    build: ./src
+    ports: ["8015:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: rateuser
+      DB_PASS: ratepass
+      DB_NAME: ratedb
+      REDIS_HOST: redis
+    depends_on: [db, redis]
+    networks: [lab15]
+networks:
+  lab15:
+    driver: bridge

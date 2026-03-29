@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hrdb
+      POSTGRES_USER: hruser
+      POSTGRES_PASSWORD: hrpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lab04
+
+  api:
+    build: ./src
+    ports:
+      - "8004:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: hruser
+      DB_PASS: hrpass
+      DB_NAME: hrdb
+    depends_on:
+      - db
+    networks:
+      - lab04
+
+networks:
+  lab04:
+    driver: bridge

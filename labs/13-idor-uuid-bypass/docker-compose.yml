@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: uuiddb
+      POSTGRES_USER: uuiduser
+      POSTGRES_PASSWORD: uuidpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab13]
+  api:
+    build: ./src
+    ports: ["8013:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: uuiduser
+      DB_PASS: uuidpass
+      DB_NAME: uuiddb
+    depends_on: [db]
+    networks: [lab13]
+networks:
+  lab13:
+    driver: bridge

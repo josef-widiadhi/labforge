@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: graphqldb
+      POSTGRES_USER: gqluser
+      POSTGRES_PASSWORD: gqlpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab17]
+  api:
+    build: ./src
+    ports: ["8017:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: gqluser
+      DB_PASS: gqlpass
+      DB_NAME: graphqldb
+    depends_on: [db]
+    networks: [lab17]
+networks:
+  lab17:
+    driver: bridge

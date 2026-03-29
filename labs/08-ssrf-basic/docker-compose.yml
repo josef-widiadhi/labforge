@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ssrfdb
+      POSTGRES_USER: ssrfuser
+      POSTGRES_PASSWORD: ssrfpass
+    volumes:
+      - ./src/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [lab08]
+  internal-service:
+    image: node:20-alpine
+    command: sh -c "node -e \"const h=require('http');h.createServer((q,s)=>{s.end(JSON.stringify({secret:'INTERNAL_SECRET_KEY=abc123',env:process.env,metadata:'this-is-internal-only'}))}).listen(8080);\""
+    networks: [lab08]
+  api:
+    build: ./src
+    ports: ["8008:3000"]
+    environment:
+      DB_HOST: db
+      DB_USER: ssrfuser
+      DB_PASS: ssrfpass
+      DB_NAME: ssrfdb
+    depends_on: [db, internal-service]
+    networks: [lab08]
+networks:
+  lab08:
+    driver: bridge

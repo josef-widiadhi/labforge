@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  api:
+    build: ./src
+    ports: ["8010:3000"]
+    volumes:
+      - ./src/files:/app/files
+      - ./src/config:/app/config
+    networks: [lab10]
+networks:
+  lab10:
+    driver: bridge
