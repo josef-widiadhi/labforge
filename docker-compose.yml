@@ -28,7 +28,9 @@ services:
       - .:/labs:ro
     environment:
       LABS_ROOT: /labs/labs
-      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_URL_FALLBACKS: ${OLLAMA_URL_FALLBACKS:-http://host.docker.internal:11434,http://172.17.0.1:11434,http://localhost:11434}
+      LABFORGE_CLASSROOM: ${LABFORGE_CLASSROOM:-true}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

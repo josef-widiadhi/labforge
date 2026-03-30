@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabForge Classroom Session</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css"/>
+<style>
+:root{--bg:#050b10;--panel:#0d1f28;--border:#1d3d4b;--accent:#00d4ff;--accent2:#00ff9d;--text:#d6f3ff;--muted:#7ab8cc;--warn:#ffb000;--danger:#ff4d6d;--mono:'Consolas','Courier New',monospace;--ui:system-ui,sans-serif}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);height:100vh;overflow:hidden}
+.header{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:#08141a;gap:10px}
+.brand{font-weight:700;letter-spacing:1px}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+.badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.badge{border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:11px;color:var(--muted)}.badge.ok{color:var(--accent2);border-color:rgba(0,255,157,.4)}.badge.warn{color:var(--warn);border-color:rgba(255,176,0,.4)}
+.layout{display:grid;grid-template-columns:minmax(0,1.35fr) 450px;height:calc(100vh - 56px)}
+.target{border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}.targetbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#08141a}
+.btn{background:#0a1820;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12px}.btn:hover{border-color:var(--accent)}.btn.primary{background:rgba(0,212,255,.08);border-color:var(--accent)} .btn.green{background:rgba(0,255,157,.08);border-color:var(--accent2)}
+iframe{flex:1;border:0;background:#fff}.empty{display:flex;align-items:center;justify-content:center;flex:1;color:var(--muted);text-align:center;padding:24px}
+.side{display:flex;flex-direction:column;min-width:0}.tabs{display:flex;border-bottom:1px solid var(--border);background:#08141a}.tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:12px;color:var(--muted);border-bottom:2px solid transparent}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.panel{display:none;flex:1;overflow:auto;padding:14px}.panel.active{display:block}.readme{white-space:pre-wrap;font-family:var(--mono);font-size:12px;line-height:1.6;background:#08141a;border:1px solid var(--border);border-radius:8px;padding:12px}
+.term{display:flex;flex-direction:column;height:100%}.screen{flex:1;background:#03080c;border:1px solid var(--border);border-radius:8px;padding:0;overflow:hidden}.fallback{display:none;height:100%;padding:12px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6}
+.inputrow{display:flex;gap:8px;margin-top:10px}.inputrow input{flex:1;background:#08141a;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:6px;font-family:var(--mono)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:8px;font-size:12px;margin-bottom:10px}.label{color:var(--muted)} .score{font-size:26px;color:var(--accent2);font-weight:700}.event{padding:10px;border:1px solid var(--border);border-radius:8px;background:#08141a;margin-bottom:8px;font-size:12px}
+.small{font-size:11px;color:var(--muted)} code{font-family:var(--mono)}
+@media (max-width:1100px){.layout{grid-template-columns:1fr}.target{min-height:40vh}.side{height:50vh}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand">⚡ LABFORGE CLASSROOM <small>student workbench: target + live terminal + readme</small></div>
+  <div class="badges">
+    <span class="badge" id="b-student">student</span>
+    <span class="badge" id="b-template">template</span>
+    <span class="badge" id="b-target">target pending</span>
+    <span class="badge" id="ws-status">WS connecting…</span>
+  </div>
+</div>
+<div class="layout">
+  <div class="target">
+    <div class="targetbar">
+      <button class="btn primary" onclick="reloadTarget()">↻ Reload Target</button>
+      <button class="btn" onclick="openTarget()">↗ Open in New Tab</button>
+      <button class="btn green" onclick="showTab('readme')">📘 README</button>
+      <span class="small" id="target-hint">teacher-bound session cockpit with websocket terminal</span>
+    </div>
+    <iframe id="target-frame" title="student target"></iframe>
+    <div class="empty" id="target-empty" style="display:none">No running target bound to this session yet.<br>Teacher can create the session again or refresh after instance spawn.</div>
+  </div>
+  <div class="side">
+    <div class="tabs">
+      <div class="tab active" data-tab="cli" onclick="showTab('cli')">Live CLI</div>
+      <div class="tab" data-tab="readme" onclick="showTab('readme')">README</div>
+      <div class="tab" data-tab="score" onclick="showTab('score')">Score</div>
+    </div>
+    <div class="panel active" id="panel-cli">
+      <div class="term">
+        <div class="screen"><div id="terminal" style="width:100%;height:100%"></div><div id="terminal-fallback" class="fallback"></div></div>
+        <div class="inputrow">
+          <input id="cmd" placeholder="help, ls, cat /var/www/html/config.php, curl /api/docs, ffuf, sqlmap..." />
+          <button class="btn primary" onclick="sendCurrentCommand()">Run</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-readme"><div class="readme" id="readme-box">Loading README...</div></div>
+    <div class="panel" id="panel-score">
+      <div class="kv"><div class="label">Score</div><div class="score" id="score">0</div><div class="label">Join URL</div><div><code id="join-url"></code></div></div>
+      <div class="small" style="margin-bottom:10px">This CLI is session-bound, websocket-backed, and records command history for replay and grading.</div>
+      <div id="events"></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script>
+const token = window.location.pathname.split('/').pop();
+let session = null, term = null, ws = null, promptText = 'student@labforge-cli:/home/student$', fallback = null;
+function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+function showTab(name){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===`panel-${name}`));}
+function statusBadge(text, cls=''){ const el=document.getElementById('ws-status'); if(el){el.textContent=text; el.className=`badge ${cls}`.trim();} }
+function writeLine(text=''){ if(term){ term.writeln(text); } else if(fallback){ fallback.innerHTML += `<div>${esc(text)}</div>`; fallback.scrollTop = fallback.scrollHeight; } }
+function renderSession(){
+ document.getElementById('b-student').textContent = `👤 ${session.studentName}`;
+ document.getElementById('b-template').textContent = `🧪 ${session.templateId}`;
+ document.getElementById('b-target').textContent = session.targetUrl ? `🎯 ${session.targetUrl}` : '🎯 target pending';
+ document.getElementById('join-url').textContent = window.location.href;
+ document.getElementById('readme-box').textContent = session.readme || 'No README found';
+ document.getElementById('score').textContent = session.cli?.score || 0;
+ const iframe=document.getElementById('target-frame'); const empty=document.getElementById('target-empty');
+ if(session.targetUrl){ iframe.src=session.targetUrl; iframe.style.display='block'; empty.style.display='none'; } else { iframe.style.display='none'; empty.style.display='flex'; }
+}
+async function loadSession(){ const r=await fetch(`/api/classroom/sessions/${token}`); session=await r.json(); renderSession(); initTerminal(); connectWs(); }
+function initTerminal(){
+ fallback = document.getElementById('terminal-fallback');
+ const host = document.getElementById('terminal');
+ if(window.Terminal){
+   term = new Terminal({ cursorBlink:true, theme:{ background:'#03080c', foreground:'#d6f3ff', green:'#00ff9d', cyan:'#00d4ff', yellow:'#ffb000' }, fontFamily:'Consolas, monospace', fontSize:13, convertEol:true });
+   term.open(host); term.writeln('LabForge websocket terminal ready.');
+ } else {
+   host.style.display='none'; fallback.style.display='block'; fallback.innerHTML = '<div>LabForge terminal fallback mode</div>';
+ }
+}
+function connectWs(){
+ const proto = location.protocol==='https:' ? 'wss' : 'ws';
+ ws = new WebSocket(`${proto}://${location.host}/ws?token=${encodeURIComponent(token)}`);
+ statusBadge('WS connecting…','warn');
+ ws.onopen = ()=> statusBadge('WS live','ok');
+ ws.onclose = ()=> statusBadge('WS disconnected','warn');
+ ws.onerror = ()=> statusBadge('WS error','warn');
+ ws.onmessage = (ev)=>{
+   const msg = JSON.parse(ev.data);
+   if(msg.type==='ready'){
+     promptText = msg.prompt || promptText;
+     document.getElementById('score').textContent = msg.score || 0;
+     writeLine(`\r\nWelcome, ${session.studentName}. Type help to see allowed commands.`);
+     (msg.history||[]).slice(-10).forEach(h=>{ writeLine(`${h.prompt || promptText} ${h.command}`); if(h.output && h.output !== '__CLEAR__') writeLine(h.output); });
+     writePrompt();
+   } else if(msg.type==='output'){
+     if(msg.output === '__CLEAR__'){ if(term) term.clear(); else fallback.innerHTML=''; }
+     else if(msg.output) writeLine(msg.output);
+     promptText = msg.prompt || promptText;
+     document.getElementById('score').textContent = msg.score || 0;
+     addEvents(msg.events || []);
+     writePrompt();
+   } else if(msg.type==='error'){
+     writeLine(`ERROR: ${msg.error || 'terminal error'}`); writePrompt();
+   }
+ };
+}
+function writePrompt(){ if(term) term.write(`\r\n${promptText} `); else writeLine(`${promptText} `); }
+function sendCurrentCommand(){
+ const input=document.getElementById('cmd'); const command=input.value.trim(); if(!command || !ws || ws.readyState!==1) return; input.value='';
+ if(term) term.write(command); else writeLine(`${promptText} ${command}`);
+ ws.send(JSON.stringify({ type:'command', command }));
+}
+function addEvents(events){ const box=document.getElementById('events'); (events||[]).forEach(ev=>box.insertAdjacentHTML('afterbegin', `<div class="event"><strong>+${ev.points} pts</strong> · ${esc(ev.desc)}<div class="small">${esc(ev.tag)}</div></div>`)); }
+function reloadTarget(){ if(session?.targetUrl) document.getElementById('target-frame').src=session.targetUrl; }
+function openTarget(){ if(session?.targetUrl) window.open(session.targetUrl,'_blank'); }
+document.getElementById('cmd').addEventListener('keydown',e=>{ if(e.key==='Enter') sendCurrentCommand(); });
+loadSession();
+</script>
+</body>
+</html>
